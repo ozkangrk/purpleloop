@@ -1,0 +1,19 @@
+=== HAFTA-5: SAFE-MODE EXPLOIT DOĞRULAMA (2026-10-07) ===
+Komutlar:
+  python3 -m purpleloop.harness --scope scope.json --out-dir run-week5 --pipeline recon,validator ...
+  python3 -m purpleloop.exploit --scope scope.json --findings findings-validated.jsonl --out exploit.jsonl --s3-endpoints 127.0.0.1:9010,203.0.113.99:9000
+
+pytest: 141 passed (10 yeni exploit testi)
+
+Sonuçlar:
+- recon bulgusu: 12 | doğrulanmış: validator çıktısı
+- exploit kanıtı: 2
+  * EXPLOITED: 1 — sızan minio cred'i bağlamında hedef S3 servisi okunabilir (anon public bucket=200, cred kanıtta maskeli)
+  * SKIPPED_SCOPE_DENIED: 1 — kapsam dışı 203.0.113.99:9000'a exploit isteği HİÇ yapılmadı, audit'e SCOPE_DENY yazıldı
+- audit SCOPE_DENY toplam: 32 | zincir: verify_chain OK
+
+Safe-mode kuralları (kodda garanti):
+- Yalnız GET/HEAD; PUT/DELETE/POST kodda yok
+- Yalnız CONFIRMED 'secret' bulguları işlenir
+- Sızan secret kanıt metninde/audit'te maskelenir (mask())
+- Kill-switch aktif => EXPLOIT durur (test kanıtlı)

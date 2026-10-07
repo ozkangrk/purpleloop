@@ -1,0 +1,7 @@
+=== HAFTA-3: VALIDATOR KATMANI (2026-10-07) ===
+Komut: python3 -m purpleloop.validator --scope scope.json --findings findings.jsonl --out findings-validated.jsonl --audit audit-week2.jsonl
+pytest: 121 passed (12 yeni validator testi)
+Sonuç: 12/12 bulgu CONFIRMED (0 REJECTED, 0 UNVERIFIED, 0 SKIPPED)
+- Her bulgu kapsam içinden yeniden fetch/bağlanılarak deterministik doğrulandı
+- Karar (verdict) yalnızca replay'den; LLM danışman yetkisiz (LLMAnalyzer adapter)
+- Tüm VALIDATION kayıtları SHA256 audit zincirine yazıldı, verify_chain OK

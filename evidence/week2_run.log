@@ -1,0 +1,35 @@
+PurpleLoop Hafta-2 — recon agent uçtan uca çalıştırma kanıtı
+Tarih: 2026-10-07 | Komut: python3 -m purpleloop.recon --scope scope.json --out findings.jsonl --audit audit-week2.jsonl --hosts 127.0.0.1,203.0.113.99 --endpoints 127.0.0.1:8081,127.0.0.1:9010
+
+=== PYTEST ===
+109 passed in 0.39s
+
+=== BULGULAR (12) ===
+open_port      127.0.0.1:8081                             TCP connect succeeded
+open_port      127.0.0.1:9010                             TCP connect succeeded
+directory      127.0.0.1:8081/backup/.env                 HTTP 200 len=63
+secret         127.0.0.1:8081/backup/.env                 _ROOT_PASSWORD=purplelab-secret
+directory      127.0.0.1:8081/backup/.aws-credentials     HTTP 200 len=67
+secret         127.0.0.1:8081/backup/.aws-credentials     AWS_SECRET_ACCESS_KEY=purplelab-secret
+directory      127.0.0.1:8081/backup/secrets-old.txt      HTTP 200 len=174
+secret         127.0.0.1:8081/backup/secrets-old.txt      _password=PurpleL00p!Lab-2026
+secret         127.0.0.1:8081/backup/secrets-old.txt      _pwd=S3cret-Backdoor-Passw0rd
+secret         127.0.0.1:8081/backup/secrets-old.txt      _token=ghp_purpleloopFAKEtoken1234567890
+bucket_service 127.0.0.1:9010                             S3-like API exposed (HTTP 403)
+open_bucket    127.0.0.1:9010/public/                     anonymous list allowed (HTTP 200, len=567)
+
+=== İSTATİSTİK ===
+findings=12 (gerçek bulgu, hepsi lab'da ekili) secrets=5 FP=0 (FP oranı %0)
+scope_deny kaydı=60
+kapsam dışı 203.0.113.99 deny=46
+kapsam dışı hedef tarandı mı: HAYIR
+audit zinciri: geçerli (verify_chain OK, 76 kayıt)
+
+=== KAPSAM DIŞI RED KANITI (audit kayıtlarından örnek) ===
+{"event": "SCOPE_DENY", "host": "203.0.113.99", "port": 21, "reason": "port 21 not allowed"}
+{"event": "SCOPE_DENY", "host": "203.0.113.99", "port": 22, "reason": "port 22 not allowed"}
+{"event": "SCOPE_DENY", "host": "203.0.113.99", "port": 80, "reason": "port 80 not allowed"}
+
+=== FP KONTROLÜ ===
+Bilinmeyen/masum içerikte parola regex'i tetiklenmedi: tests/test_recon.py::test_scan_secrets_no_fp_on_benign_file PASSED
+nginx /backup/ artık bucket sanılmıyor (S3 tespiti XML gövde gerektirir)
