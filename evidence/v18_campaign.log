@@ -1,0 +1,27 @@
+=== v1.8: KAMPANYA ORKESTRATÖRÜ — otonom döngü (2026-10-08) ===
+
+Araştırma: otonom pentest ajanları (APT-Agent arXiv, FireCompass deseni)
+RECON→TRIAGE→PRIORITIZE→DEEP-PROBE aşamalarıyla çalışıyor. PurpleLoop farkı:
+**LLM'siz deterministik önceliklendirme** — LLM yalnız DANIŞMAN.
+
+MODÜL: purpleloop/campaign.py — CampaignOrchestrator
+- prioritize_findings(): 11 bulgu tipi deterministik skorla sıralanır
+- Döngü: recon → önceliklendir → derin prob planı → bütçeli yürütme
+- Temel prob seti (baseline): kampanya sqli/hata/bypass sondajlarıyla açılır
+- Aynı prob tipi yalnız BİR kez koşar (ilk koşuda 10x tekrar hatası bulundu
+  ve düzeltildi — canlı testin değeri)
+- LLM danışman sözleşmesi: sıralama ÖNERİR; kapsam dışı öneri = ADVISOR_REJECT
+  kaydı + UYGULANMAZ (test kanıtlı). Danışman hatası non-blocking.
+
+FAIL-CLOSED SINIRLAR:
+- kill-switch her adım öncesi; max_steps bütçesi zorunlu
+- her prob scope kapısından geçer
+
+CANLI KOŞU (Juice Shop v17.3.0, /tmp/pl-campaign5):
+- 3 adım: error_disclosure → sqli_data_leak → extension_filter_bypass
+- 3 gerçek bulgu tek otonom koşuda (21-email sızıntısı dahil)
+- audit zinciri geçerli; 0 kapsam ihlali
+
+TESTLER: 5 yeni (test_campaign.py) → 246 yeşil
+- deterministik sıra, bütçe, kill-switch halt, danışman kapsam-dışı reddi,
+  uçuş sırası (sqli önce bypass'tan)
