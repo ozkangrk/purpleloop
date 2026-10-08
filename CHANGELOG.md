@@ -4,6 +4,13 @@ Tüm önemli değişiklikler bu dosyada belgelenir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) uyumludur;
 sürümleme [SemVer](https://semver.org/lang/tr/) ile yapılır.
 
+## [0.8.0] - 2026-10-08
+### Added
+- Sürekli izleme: `purpleloop monitor` — delta tarama (NEW/RESOLVED/UNCHANGED), kritik sızıntı alert'leri (secret/open_bucket NEW → ALERT), kill-switch'li scheduler.
+- Benchmark çekirdeği: `purpleloop bench` — lab ground-truth'ye %100 recall, 0 FP, 0 kapsam ihlali; tuzak host reddi kanıtı.
+- Recon: açık bucket nesnesi indirme (GET-only) + nginx autoindex tespiti.
+- Unified CLI: `monitor` + `bench` alt komutları.
+
 ## [0.6.0] — 2026-10-08
 
 İlk ürün paketi: pyproject, birleşik CLI (`purpleloop` / `python3 -m purpleloop`),
