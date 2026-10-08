@@ -27,6 +27,8 @@ def _build_parser():
          "Lab benchmark: recall / FP / kapsam-ihlali metrikleri"),
         ("dashboard", "purpleloop.dashboard",
          "Sonuç panosu"),
+        ("mcp", "purpleloop.mcp_server",
+         "MCP server (stdio): AI agent'lara scope-gated araçlar"),
     ]:
         sp = sub.add_parser(name, help=help_, add_help=True)
         sp.set_defaults(_module=mod)

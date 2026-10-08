@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "purpleloop"
-version = "0.8.0"
+version = "1.3.0"
 description = "Fail-closed security harness for authorized penetration testing: scope gate, audit chain, kill-switch, recon, validator, safe-mode exploit, attack-path analysis."
 readme = "README.md"
 requires-python = ">=3.11"

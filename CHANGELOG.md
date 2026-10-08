@@ -1,8 +1,17 @@
 # Changelog
 
 Tüm önemli değişiklikler bu dosyada belgelenir.
-Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) uyumludur;
+Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) uyumlu;
 sürümleme [SemVer](https://semver.org/lang/tr/) ile yapılır.
+
+## [1.3.0] - 2026-10-08
+### Added
+- MCP server (`purpleloop mcp` / `python3 -m purpleloop.mcp_server`): AI
+  agent'lara stdio üzerinden 5 scope-gated araç — status, scope_check, scan,
+  killswitch, audit. Kontrol düzlemi değişmedi; server ince sarmalayıcı.
+- Kill-switch aktifken server hiç başlamaz (exit 3); scan çağrısında aktifse
+  halted=True döner.
+- 9 yeni test: FakeTransport uçtan uca + gerçek stdio el sıkışması.
 
 ## [0.8.0] - 2026-10-08
 ### Added

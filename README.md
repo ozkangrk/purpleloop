@@ -52,6 +52,7 @@ python3 -m purpleloop dashboard --run-dir run1   # http://127.0.0.1:8090
 | `purpleloop monitor` | Continuous delta scanning + critical alerts |
 | `purpleloop bench` | Lab benchmark: recall / FP / scope violations |
 | `purpleloop dashboard` | Live web dashboard (stdlib-only) |
+| `purpleloop mcp` | MCP server (stdio) — AI agents get scope-gated tools |
 
 ## Benchmark (measured, not claimed)
 
@@ -103,10 +104,12 @@ or change verdicts. Third-party agents get network access exclusively through
 
 ## Test evidence
 
-- **169 tests green** (`python3 -m pytest -q`)
+- **207 tests green** (`python3 -m pytest -q`)
 - Week-by-week run logs: `evidence/first_run.log`, `evidence/week2..8_run.log`
 - Benchmark: `evidence/bench-result.json` — 100% recall / 0 FP / 0 violations
 - Continuous monitoring: `evidence/monitoring.jsonl` + 5 critical alerts
+- MCP server live run: `evidence/v13_mcp_run.log` — real client → stdio server
+  → live lab, 33 findings, chain valid, decoy denied
 
 ## Roadmap
 

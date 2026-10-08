@@ -1,0 +1,29 @@
+=== v1.3: MCP SERVER (2026-10-08) ===
+Amaç: AI agent'lara (MCP) scope-gated güvenlik taraması — IDEAS P2/7 → P0
+
+Modül: purpleloop/mcp_server.py (ince sarmalayıcı; kontrol düzlemi değişmedi)
+Araçlar: status, scope_check, scan, killswitch, audit
+Bağımlılık: mcp SDK 2.0.0 (varsa; yoksa import hatası net verilir)
+
+Testler: python3 -m pytest tests/ -q
+→ 207 passed (9 yeni MCP testi; FakeTransport + gerçek stdio el sıkışması)
+
+Canlı uçtan uca (gerçek MCP istemcisi -> stdio server -> canlı docker lab):
+Komut: python3 /home/ozkangu/.hermes/cache/scratch/pl_mcp_live.py
+- El sıkışma: OK; 5 araç listelendi
+- scope_check 127.0.0.1:8081 → izinli (lab kapsamda)
+- scope_check 203.0.113.99:80 → RET "port 80 not allowed" + audit'e SCOPE_DENY
+- scan 127.0.0.1 (8081+9010) → 33 bulgu: secret×8, open_bucket, bucket_service,
+  directory×5, missing_header×15, open_port×2 (ekili varlıkların tamamı)
+- Audit zinciri: gecerli=True (128 kayıt, SHA256 zincir doğrulandı)
+- Kill-switch aktifken scan reddi: birim testle kanıtlı
+  (test_scan_tool_refuses_when_killswitch_active)
+
+Güvenlik notları:
+- Server hiçbir doğrudan ağ çağrısı yapmaz; ReconStage->ScopeGatedTransport
+  zorunlu yol (mevcut mimari, değişiklik yok).
+- scope_check aracı RET kararını audit'e yazar (kaynak=mcp:scope_check).
+- stdio alt süreci beyaz liste env alır; PYTHONPATH taşıması testte belgelendi.
+
+Fail-closed davranış: kill-switch aktif → server hiç başlamaz (exit 3);
+scan çağrısında aktif → halted=True, 0 bulgu, zincir geçerli döner.
