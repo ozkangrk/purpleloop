@@ -41,6 +41,10 @@ def _build_parser():
          "White-hat sızma denemeleri: auth bypass / traversal / oturum"),
         ("bounty", "purpleloop.bounty",
          "Bounty harness: dene → skorboard doğrula → ödül"),
+        ("init", "purpleloop.product",
+         "Çalışma dizini kur: scope şablonu + rehber"),
+        ("demo", "purpleloop.product",
+         "Tek komutla tam ürün turu (izole demo lab)"),
     ]:
         sp = sub.add_parser(name, help=help_, add_help=True)
         sp.set_defaults(_module=mod)
@@ -73,6 +77,10 @@ def main(argv=None) -> int:
     if sub_main is None:
         print(f"purpleloop: {args._module} içinde main() yok.", file=sys.stderr)
         return 2
+    # product modülü kendi alt komutunu (init/demo) rest'ten ayıramaz:
+    # ana CLI alt komutu BAŞA ekleyerek iletir.
+    if args._module == "purpleloop.product":
+        rest = [args.command] + rest
     rc = sub_main(rest)
     return int(rc) if rc is not None else 0
 

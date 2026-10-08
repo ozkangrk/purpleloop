@@ -1,0 +1,24 @@
+=== v2.3: ÜRÜN DENİYİMİ — init + demo + quickstart (2026-10-08) ===
+
+"Çekirdek bitti" yetmiyordu; ürün TEK KOMUTLA denenebilir olmalıydı.
+
+1) purpleloop init — scope.json şablonu + SCOPE-OKU.md + .gitignore;
+   üzerine yazma koruması; sonraki adım rehberi basar
+2) purpleloop demo — TAM ÜRÜN TURU tek komutla:
+   - izole zayıf lab (docker, 127.0.0.1:3611, kasıtlı 6 açık)
+   - kapsam kontrolü: tuzak hedef REDDİ kanıtla gösterilir
+   - recon → pentest → vektör kütüphanesi → SARIF → policy gate
+   - CANLI KANIT (4. koşum): vektörler 3 bulgu (idor, xss_reflection,
+     open_redirect); pentest 3 bulgu (anonim oturum + auth_bypass +
+     /etc/passwd okundu); gate **FAIL error=3** — ürün demo'su gerçek
+     bir güvenlik kararıyla bitiyor (CI'da pipeline'ı bloke ederdi)
+3) EBEVEYN DÜZELTMESİ (kritik): sızma bulgu tipleri (auth_bypass,
+   path_traversal, idor, jwt_alg_none, xxe, nuclei_*) SARIF/gate
+   SEVERITY haritasında YOKTU → hepsi 'note' muamelesi görüyordu;
+   kimlik aşımı bile gate'i düşürmüyordu! Haritaya 15 tip eklendi
+   (auth_bypass=error/9.5, path_traversal=error/9.3, idor=error/8.2...)
+4) QUICKSTART.md — 5 dakikalik yol: demo → init → gerçek hedef → CI →
+   MCP ajan → sürekli izleme
+5) CLI: init + demo alt komutları (product modül dağıtımı düzeltildi)
+
+TESTLER: 327 passed + 2 skipped (5 yeni ürün testi)

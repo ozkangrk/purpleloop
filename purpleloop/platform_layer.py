@@ -33,6 +33,22 @@ _SEVERITY = {
     "open_port": ("note", 0.0),
     "open_redirect": ("warning", 6.1),
     "bucket_service": ("warning", 4.3),
+    # --- sızma (pentest/vectors/bounty) bulgu tipleri ---
+    "auth_bypass": ("error", 9.5),              # kimlik aşımı: kritik
+    "path_traversal": ("error", 9.3),           # dosya okuma: kritik
+    "idor": ("error", 8.2),                     # yatay yetki aşımı
+    "auth_anonymous_session": ("warning", 6.8), # kimliksiz veri yüzeyi
+    "xss_reflection": ("warning", 6.4),
+    "jwt_alg_none": ("error", 9.6),             # imzasız token
+    "xxe_signature": ("error", 8.8),
+    "method_abuse": ("note", 2.5),
+    "default_login_surface": ("warning", 5.5),
+    "bounty_solve": ("error", 8.0),             # skorboard doğrulamalı çözüm
+    "nuclei_critical": ("error", 9.7),
+    "nuclei_high": ("error", 8.5),
+    "nuclei_medium": ("warning", 5.5),
+    "nuclei_low": ("warning", 3.5),
+    "nuclei_info": ("note", 1.0),
 }
 
 
