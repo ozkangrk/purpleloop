@@ -120,6 +120,36 @@ TOOL_SPECS = [
             "additionalProperties": False,
         },
     },
+    {
+        "name": "propose_probe",
+        "description": "AJAN-ESNEK SIZMA: ajan kendi sızma isteğini önerir "
+                       "(path + gerekçe). Platform kapıdan geçirir (scope, "
+                       "method beyaz listesi, zararlılık filtresi, hız limiti), "
+                       "koşar ve İMZA-temelli kanıt döner. Kanıt yoksa bulgu "
+                       "yok — 'buldum'u ajan değil kanıt söyler. RED durumları "
+                       "nedeniyle audit'e yazılır.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "host": {"type": "string"},
+                "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+                "path": {"type": "string",
+                         "description": "denenecek tam path (query dahil)"},
+                "gerekce": {"type": "string",
+                            "description": "neden bu prob? (zorunlu)"},
+                "method": {"type": "string", "default": "GET"},
+            },
+            "required": ["host", "port", "path", "gerekce"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "agent_session",
+        "description": "Ajan sızma oturumu özeti: kabul/red sayıları, hız "
+                       "limiti, kanıtlı bulgu sayısı.",
+        "inputSchema": {"type": "object", "properties": {},
+                        "additionalProperties": False},
+    },
 ]
 
 
@@ -332,6 +362,34 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None,
             "out_dir": out_dir,
         })
 
+    # ---- v2.4: ajan-esnek sızma (propose_probe + oturum özeti) ----
+    from .agent_attack import ProbeProposer
+    _proposer = ProbeProposer(
+        scope=scope, killswitch=killswitch, audit=audit,
+        out_path=os.path.join(out_dir, "agent-probes.jsonl"),
+        rate_per_minute=20)
+
+    def _propose_probe(host: str, port: int, path: str, gerekce: str = "",
+                       method: str = "GET") -> str:
+        r = _proposer.propose(host, port, path, gerekce=gerekce, method=method)
+        return _j(r)
+
+    def _agent_session() -> str:
+        # stateless MCP (her çağrı yeni süreç): oturum sayacı DISK üzerinde
+        import json as _json
+        state_p = os.path.join(out_dir, "agent-session.json")
+        kabul = red = kanitli = 0
+        if os.path.exists(state_p):
+            with open(state_p, encoding="utf-8") as f:
+                st = _json.loads(f.read() or "{}")
+                kabul, red = st.get("kabul", 0), st.get("red", 0)
+        pfl = os.path.join(out_dir, "agent-probes.jsonl")
+        if os.path.exists(pfl):
+            with open(pfl, encoding="utf-8") as f:
+                kanitli = sum(1 for l in f if l.strip())
+        return _j({"kabul": kabul, "red": red, "kanitli_bulgu": kanitli,
+                   "rate": 20})
+
     handlers = {
         "status": _status,
         "scope_check": _scope_check,
@@ -340,6 +398,8 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None,
         "audit": _audit,
         "campaign": _campaign,
         "gate": _gate,
+        "propose_probe": _propose_probe,
+        "agent_session": _agent_session,
     }
     for spec in TOOL_SPECS:
         server.add_tool(handlers[spec["name"]], name=spec["name"],

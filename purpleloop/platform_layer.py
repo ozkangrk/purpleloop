@@ -44,6 +44,7 @@ _SEVERITY = {
     "method_abuse": ("note", 2.5),
     "default_login_surface": ("warning", 5.5),
     "bounty_solve": ("error", 8.0),             # skorboard doğrulamalı çözüm
+    "agent_probe_leak": ("error", 8.5),        # ajan önerisinden kanıtlı sızıntı
     "nuclei_critical": ("error", 9.7),
     "nuclei_high": ("error", 8.5),
     "nuclei_medium": ("warning", 5.5),

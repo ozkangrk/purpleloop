@@ -1,0 +1,33 @@
+=== v2.4: AJAN-ESNEK SIZMA — propose_probe (2026-10-08) ===
+
+SORUN: kampanya SABİT vektör listesi koşuyordu; ajan yaratıcılık
+katamıyordu ("ajan saldırmıyor, düğmeye basıyordu").
+
+ÇÖZÜM: ProbeProposer + MCP propose_probe aracı.
+Ajan runtime'da kendi sızma isteğini önerir (host, port, path, GEREKÇE);
+platform 6 kapıdan geçirir:
+  1) kill-switch
+  2) gerekçe ZORUNLU (amaçsız tarama yasak — 'neden denedin' kaydı)
+  3) method beyaz listesi (GET/HEAD)
+  4) scope kapısı (izinsiz host RED)
+  5) zararlılık filtresi (DROP TABLE / rm -rf / shutdown / shadow...
+     URL-KODLANMIŞ biçimler dahil çözülerek)
+  6) hız limiti (dakikada 20 öneri)
+Sonra koşar ve İMZA-temelli kanıt çıkarır (e-posta/bcrypt/passwd imzası).
+' buldum' diyen ajan değil kanıt fonksiyonudur — kanıt yoksa bulgu yok.
+
+CANLI KANIT (Juice Shop v17.3.0, SDK üzerinden, 5 öneri):
+- iyi SQLi önerisi → KABUL → 21 e-posta sızdı (kanıt imzayla)
+- DROP TABLE önerisi → RED 'zararlı desen'
+- 203.0.113.99 → RED 'port 80 not allowed'
+- gerekçesiz /ftp/ → RED 'gerekçe zorunlu'
+- q=apple → KABUL, kanıt YOK → bulgu ÜRETİLMEDİ
+- oturum (disk-tabanlı, stateless MCP uyumlu): kabul=2 red=2 kanıtlı=1
+
+YENİ: agent_attack.py (ProbeProposer, is_dangerous, extract_evidence);
+MCP araçları: propose_probe + agent_session; SDK: propose_probe/agent_session.
+Ek: agent_probe_leak tipi SEVERITY'de error/8.5.
+
+TESTLER: 11 yeni → 338 passed + 2 skipped
+- zararlı desenler (kodlanmış dahil), 6 kapı sırası, kanıt-yok-bulgu-yok,
+  hız limiti, kill-switch, oturum özeti

@@ -130,3 +130,13 @@ class PurpleLoopClient:
 
     def audit(self, tail: int = 10) -> dict:
         return self._call("audit", {"tail": tail})
+
+    def propose_probe(self, host: str, port: int, path: str, gerekce: str,
+                      method: str = "GET") -> dict:
+        """AJAN-ESNEK SIZMA: kendi sızma önerini sun (kapı platformda)."""
+        return self._call("propose_probe", {
+            "host": host, "port": port, "path": path,
+            "gerekce": gerekce, "method": method})
+
+    def agent_session(self) -> dict:
+        return self._call("agent_session", {})
