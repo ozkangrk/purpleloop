@@ -1,0 +1,32 @@
+=== v1.5: AKTİF PROBLAR (GET-only safe-mode) — Juice Shop canlı kanıtı (2026-10-08) ===
+
+MODÜL: purpleloop/active.py — recon'un ötesinde, exploit'in altında sınıf:
+kimlik doğrulamasız, YALNIZ GET/HEAD, tek isteklik problar; her istek scope
+kapısından geçer, kill-switch her prob başında kontrol edilir.
+
+PROBLAR (5):
+  error_disclosure        — 5xx + yığın izi/driver ifşası (6 imza deseni)
+  sqli_signature          — GET parametresine ' sondağı, SQL hatası izleme
+  xss_reflection          — zararsız işaretleyici yankısı (FP önle: JSON yankı = bulgu DEĞİL)
+  open_redirect           — /redirect?to= dış hedef 3xx (allowlist çalışıyorsa bulgu YOK)
+  extension_filter_bypass — %2500 null-byte uzantı filtresi bypass
+
+TESTLER: 7 yeni test (test_active_probe.py) → toplam 219 yeşil
+- is_error_disclosure birim: SQLITE_ERROR/+ "at file.js" yakalar, jenerik "internal error" yakalamaz
+- uçtan uca FakeTransport: her prob tipi + tuzak host'a 0 istek + kill-switch halt
+
+CANLI SONUÇ (Juice Shop v17.3.0, /tmp/juice-mcp-f3):
+- error_disclosure      127.0.0.1:3100/rest/does-not-exist  (Error Handling ch. yüzeyi)
+- extension_filter_bypass 127.0.0.1:3100/ftp/package.json.bak%2500.md
+  → "Forgotten Developer Backup" challenge'ının ta kendisi: 403'teki dosya
+    null-byte bypass ile okundu (4289 bayt package.json içeriği)
+- sqli_signature: SESSİZ — Juice Shop ' girdisini zararsızlaştırıyor (200);
+  sessizlik DOĞRU davranış: FP yok
+- open_redirect: SESSİZ — allowlist 406 döndürüyor, çalışıyor; FP yok
+- MCP scan aracı artık recon+validator+active tek çağrıda: 16 bulgu, zincir geçerli
+
+DÜRÜST SINIRLAR:
+- xss_reflection probu kasıtlı olarak temkinli: salt JSON yankısını bulgu saymaz
+  (FP riski); gerçek XSS kanıtı exploit modülünün işi.
+- Bu problar zararsız işaretleyici/sondağ kullanır; hiçbir payload yazmaz,
+  veri değiştirmez, yalnız GET.

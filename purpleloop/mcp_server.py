@@ -18,7 +18,8 @@ import os
 import sys
 
 from .audit import AuditLog
-from .harness import Harness, HarnessContext, ReconStage, RealTransport
+from .harness import (Harness, HarnessContext, ReconStage, RealTransport,
+                      SecurityAgent)
 from .killswitch import KillSwitch
 from .scope import ScopeContract
 
@@ -101,11 +102,14 @@ def _parse_endpoints(endpoints, hosts):
 
 
 def _read_findings(out_dir):
-    fpath = os.path.join(out_dir, "findings.jsonl")
-    if not os.path.exists(fpath):
-        return []
-    with open(fpath, encoding="utf-8") as f:
-        return [json.loads(line) for line in f if line.strip()]
+    import glob
+    all_f = []
+    for name in ("findings.jsonl", "active-findings.jsonl"):
+        fpath = os.path.join(out_dir, name)
+        if os.path.exists(fpath):
+            with open(fpath, encoding="utf-8") as f:
+                all_f.extend(json.loads(line) for line in f if line.strip())
+    return all_f
 
 
 def _read_audit_records(audit):
@@ -122,6 +126,18 @@ def _read_audit_records(audit):
 def build_server(scope, audit, killswitch, out_dir, transport_factory=None):
     """MCPServer döndürür; transport_factory testlerde FakeTransport verir."""
     from mcp.server.mcpserver.server import MCPServer
+
+    class _ActiveStageAdapter:
+        """Harness pipeline'a ActiveProbe'u SecurityAgent sözleşmesiyle sarar."""
+        name = "active"
+        description = "GET-only safe-mode aktif problar"
+
+        def __init__(self, factory):
+            self._factory = factory
+
+        def run(self, ctx):
+            probe = self._factory()
+            return len(probe.run(list(ctx.artifacts.get("_endpoints") or [])))
 
     server = MCPServer(name="purpleloop", instructions=__doc__ or "")
 
@@ -144,7 +160,7 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None):
                          kaynak="mcp:scope_check", reason=reason)
         return _j({"izinli": allowed, "sebep": "" if allowed else reason})
 
-    def _scan(hosts, endpoints=None, domains=None) -> str:
+    def _scan(hosts, endpoints=None, domains=None, active=True) -> str:
         if killswitch.is_active():
             audit.append("KILLSWITCH_HALT", stage="mcp:scan")
             return _j({"halted": True, "reason": "kill-switch aktif",
@@ -160,7 +176,16 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None):
         harness = Harness(ctx)
         harness.agents["recon"] = ReconStage(hosts=hosts, endpoints=eps,
                                              base_domains=domains or [])
-        summary = harness.run_pipeline(["recon", "validator"])
+        ctx.artifacts["_endpoints"] = eps
+        stages = ["recon", "validator"]
+        if active:
+            from .active import ActiveProbe
+            harness.agents["active"] = _ActiveStageAdapter(
+                lambda: ActiveProbe(scope=scope, killswitch=killswitch, audit=audit,
+                                    out_path=os.path.join(out_dir, "active-findings.jsonl"),
+                                    transport=raw))
+            stages.append("active")
+        summary = harness.run_pipeline(stages)
         findings = _read_findings(out_dir)
         return _j({
             "toplam_bulgu": len(findings),

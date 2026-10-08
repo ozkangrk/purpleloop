@@ -4,6 +4,17 @@ Tüm önemli değişiklikler bu dosyada belgelenir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) uyumlu;
 sürümleme [SemVer](https://semver.org/lang/tr/) ile yapılır.
 
+## [1.5.0] - 2026-10-08
+### Added
+- Aktif problar (`purpleloop.active`): GET-only safe-mode sonda sınıfı —
+  `error_disclosure`, `sqli_signature`, `xss_reflection` (temkinli),
+  `open_redirect`, `extension_filter_bypass` (%2500 null-byte).
+  Her prob scope kapısından geçer; kill-switch her prob başında.
+- MCP `scan` aracı artık recon+validator+active tek çağrıda (findings birleşik).
+- Juice Shop canlı kanıtı: error_disclosure + Forgotten Developer Backup
+  (extension_filter_bypass) bulundu; SQLi/redirect sessiz = FP yok (`evidence/v15_active_probes.log`).
+- 7 yeni test → 219 yeşil.
+
 ## [1.4.0] - 2026-10-08
 ### Added
 - OWASP Juice Shop v17.3.0 benchmark: GET-recon sınıfında %100 recall, 0 FP,
