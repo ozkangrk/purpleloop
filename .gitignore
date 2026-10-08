@@ -8,3 +8,6 @@ run*/
 build/
 dist/
 *.egg-info/
+benchmarks/*.json
+benchmarks/*.parquet
+evidence/continuous/
