@@ -31,6 +31,8 @@ def _build_parser():
          "MCP server (stdio): AI agent'lara scope-gated araçlar"),
         ("platform", "purpleloop.platform_layer",
          "Platform katmanı: SARIF export / policy gate / OSV zenginleştirme"),
+        ("projects", "purpleloop.projects",
+         "Çoklu-proje defteri: müşteri/hedef yönetimi + toplu tarama"),
     ]:
         sp = sub.add_parser(name, help=help_, add_help=True)
         sp.set_defaults(_module=mod)

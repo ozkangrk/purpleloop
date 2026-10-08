@@ -1,0 +1,55 @@
+name: Security Gate
+
+# PurpleLoop policy gate CI örneği: eşik aşılırsa pipeline bloke olur.
+# Kullanım: kendi izinli hedefinizi tarayın (asla izinsiz hedef değil) veya
+# bulgu dosyanızı elle üretilmiş findings.jsonl olarak verin.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      bypass_ticket:
+        description: "Acil baypas bileti (SEC-123 gibi; boşsa baypas yok)"
+        required: false
+        default: ""
+
+jobs:
+  security-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Birim testler
+        run: |
+          pip install pytest
+          python -m pytest -q
+
+      - name: Lab ortamını kur (docker compose)
+        run: docker compose up -d --wait
+
+      - name: Tarama + SARIF + Policy Gate
+        run: |
+          mkdir -p gate
+          python -m purpleloop.harness \
+            --scope scope.json --out-dir gate/run \
+            --hosts 127.0.0.1 --endpoints 127.0.0.1:8081,127.0.0.1:9010 \
+            --pipeline recon,validator
+          python -m purpleloop.platform_layer sarif \
+            --findings gate/run/findings.jsonl --out gate/purpleloop.sarif
+
+      - name: Policy Gate kararı
+        run: |
+          python -m purpleloop.platform_layer gate \
+            --findings gate/run/findings.jsonl \
+            ${{ github.event.inputs.bypass_ticket && format('--bypass-ticket {0}', github.event.inputs.bypass_ticket) || '' }}
+
+      - name: SARIF yükle (GitHub Code Scanning)
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gate/purpleloop.sarif

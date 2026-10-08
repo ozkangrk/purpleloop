@@ -1,0 +1,24 @@
+=== v1.7: ÇOKLU-PROJE DEFTERİ + CI SECURITY GATE (2026-10-08) ===
+
+1) MODÜL: purpleloop/projects.py — ProjectRegistry + ProjectRecord
+- Her proje: benzersiz id, scope sözleşmesi, out-dir, policy eşikleri
+- Kalıcılık: projects.json; BOZUK DEFTER = FAIL-CLOSED (RuntimeError) —
+  izinli hedef listesi kaybolursa sessiz boş listeye DÜŞMEZ
+- scan_all: scanner enjeksiyonu (test edilebilir); tek projenin scope
+  hatası turu durdurmaz — o proje {'hata': ...}, diğerleri koşar
+- CLI: list / add / remove / scan (recon+validator+gate her proje için)
+
+CANLI KOŞU (2 gerçek hedef tek defterden):
+{"ic-lab": {"bulgu": 21, "gate": "FAIL", "halted": false},
+ "juice-demo": {"bulgu": 12, "gate": "PASS", "halted": false}}
+→ lab'da ekili secret'ler gate'i düşürdü (beklenen); juice recon temiz.
+
+2) CI: .github/workflows/security-gate.yml
+- Adımlar: pytest → docker compose lab → tarama → SARIF → policy gate
+  (FAIL = pipeline bloke) → GitHub Code Scanning SARIF yükleme
+- Acil baypas: yalnız workflow_dispatch bilet girdisiyle, kayıtlı
+- YAML doğrulandı (7 adım)
+
+3) TESTLER: 6 yeni (test_projects.py) → 241 yeşil
+- ekle/listele, duplicate id reddi, kalıcılık, bozuk defter fail-closed,
+  scan_all enjeksiyonu, eksik scope → tek proje hata diğerleri koşar
