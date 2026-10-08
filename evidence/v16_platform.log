@@ -1,0 +1,36 @@
+=== v1.6: PLATFORM KATMANI — SARIF + POLICY GATE + OSV (2026-10-08) ===
+
+Araştırma kaynakları: OWASP DevSecOps Security Gates (SARIF security-severity
+deseni), OSV.dev API (querybatch), OpenSSF malicious-package akışı.
+
+MODÜL: purpleloop/platform_layer.py ( saf stdlib; OSV yalnız urllib )
+
+1) SARIF 2.1.0 EXPORT (to_sarif)
+- 11 bulgu tipi -> level (error/warning/note) + security-severity (0-10)
+- OWASP desenine uygun: rule.properties.security-severity = tek sayısal eşik
+- Canlı: 17 bulgu -> 1 error + 12 warning + 4 note
+
+2) POLICY GATE (PolicyGate) — CI exit kararı
+- Eşik: max_error=0, max_warning=10 varsayılan
+- Canlı doğrulama (taze tam tarama):
+    {"durum": "FAIL", "error": 1, "warning": 12} -> exit 1 (pipeline bloke)
+- Bypass bileti: ticket'sız baypas yok; FAIL_WITH_BYPASS = kayıtlı istisna
+  (OWASP emergency-bypass desenine uygun: karar yine flag'li)
+
+3) OSV ZENGİNLEŞTİRME (parse_lockfile_deps + OSVClient)
+- Sızan /ftp/package.json.bak (null-byte bypass bulgumuz) -> 74 bağımlılık
+- OSV.dev querybatch (canlı): 64 BİLİNEN ZAFİYET — express@4.16 (2x GHSA),
+  js-yaml@3.10, grunt@1.0 (3x), express-jwt@0.1.3, body-parser@1.18 (2x)...
+- Bu, Juice Shop "Vulnerable Components" kategorisinin otomatik kanıtı:
+  sızan bağımlılık listesinden bilinen CVE çıkarımı uçtan uca çalışıyor.
+- parse: package.json (npm) + requirements.txt (pip; yalnız == kesin sürüm)
+
+TESTLER: 10 yeni (test_platform_layer.py) -> 235 yeşil
+- SARIF şema/severity/security-severity; gate PASS/FAIL/bypass;
+  parse (json+requirements); OSV querybatch gövde + CANLI OSV sorgusu
+  (body-parser 1.18.2 gerçek GHSA döndü)
+
+KULLANIM:
+  python3 -m purpleloop.platform_layer sarif --findings f.jsonl --out p.sarif
+  python3 -m purpleloop.platform_layer gate  --findings f.jsonl   # exit 0/1
+  python3 -m purpleloop.platform_layer osv   --file leaked-pkg.json --out v.jsonl

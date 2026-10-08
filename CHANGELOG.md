@@ -4,7 +4,16 @@ Tüm önemli değişiklikler bu dosyada belgelenir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) uyumlu;
 sürümleme [SemVer](https://semver.org/lang/tr/) ile yapılır.
 
-## [1.5.0] - 2026-10-08
+## [1.6.0] - 2026-10-08
+### Added
+- Platform katmanı (`purpleloop.platform_layer`): SARIF 2.1.0 export
+  (OWASP security-severity deseni), policy gate (CI exit kararı + kayıtlı
+  bypass), OSV.dev zenginleştirme (sızan package.json'dan bilinen CVE).
+- Canlı kanıt: sızan /ftp/package.json.bak → 74 bağımlılık → **64 bilinen
+  zafiyet** (express, js-yaml, grunt...); taze tarama → gate FAIL/exit 1.
+- 10 yeni test → 235 yeşil (canlı OSV sorgusu dahil).
+
+## [1.5.1] - 2026-10-08
 ### Added
 - Aktif problar (`purpleloop.active`): GET-only safe-mode sonda sınıfı —
   `error_disclosure`, `sqli_signature`, `xss_reflection` (temkinli),
