@@ -1,0 +1,28 @@
+=== v1.1: JEV-TARZI KARAR KATMANI / SYSTEM ONE (2026-10-08) ===
+
+ARAŞTIRMA ÖZETİ (Jev, TypeSafe AI, Eylül 2026):
+- "Konuşmayan, karar veren" model: state + tipli sorular → tek paralel geçişte
+  tipli kararlar + kalibre güven. 70-500ms, LLM'den 200x hızlı, tip hatası
+  matematiksel olarak imkânsız, hallucination yok (string üretimi yok).
+- Fiyat: $0.042/MTok girdi, çıktı ücretsiz. Kahneman'ın System 1'ine atıf.
+- Güvenlik kullanım alanları (TypeSafe'in kendi listesi): score, judge, verify,
+  guardrail, jailbreak tespiti — PurpleLoop'un validator/traj ihtiyacıyla birebir.
+
+PURPLELOOP ENTEGRASYONU (purpleloop/decision.py):
+- TriageDecision tipli çıktı: severity / fp_olasilik / exploitability /
+  confidence / gerekce — JSON-schema kısıtlı, fail-closed parser
+  (bozuk yanıt => muhafazakâr varsayılan, confidence 0.1)
+- 3 arka uç: JevAPIBackend (TYPESAFE_API_KEY ile gerçek Jev),
+  LocalQwenBackend (TensorFold Qwen 3.8 — System-1 emülasyonu, veri lokalde),
+  StaticBackend (deterministik kurallar — offline/CI yedeği)
+- auto seçim: Jev → lokal → statik
+- ÖNEMLİ: karar katmanı triaj/önceliklendirme yapar; validator VERDICT'i
+  yalnız deterministik replay verir — System-1 katmanı üretim kararı DEĞİTIREMEZ
+
+CANLI ÖLÇÜM (lokal qwen3.8-flash-next @ tensorfold):
+- 8 bulgu triaj: 10.9s (~1.4s/bulgu; gerçek Jev ile ~100ms/bulgu beklenir)
+- Kalibrasyon örnekleri: .env sızıntısı → high, exploit 0.90, conf 0.95 ✓
+  /backup/ listing → medium ✓ ; missing_header → info ✓ (yerinde ayrım)
+- TRIAGE kayıtları audit zincirine yazıldı, verify_chain OK
+
+TEST: 197 passed (9 yeni: parser fail-closed, kalibrasyon, hız, statik kurallar)
