@@ -42,6 +42,32 @@ LAB_TRUTH = [
     ("bucket_secret_2", "secret", "127.0.0.1:9010/public/credentials-leaked.txt"),
 ]
 
+# OWASP Juice Shop v17.3.0 GET-recon ground truth (canlı doğrulanmış;
+# bkz. evidence/v14_juice_benchmark.log). Hedef: 127.0.0.1:3100
+JUICE_TRUTH = [
+    ("ftp_listing", "directory", ":3100/ftp/"),
+    ("ftp_kdbx", "directory", ":3100/ftp/incident-support.kdbx"),
+    ("ftp_acquisitions", "directory", ":3100/ftp/acquisitions.md"),
+    ("ftp_announcement", "directory", ":3100/ftp/announcement_encrypted.md"),
+    ("ftp_legal", "directory", ":3100/ftp/legal.md"),
+    ("metrics", "directory", ":3100/metrics"),
+    ("api_docs", "directory", ":3100/api-docs/"),
+    ("robots", "directory", ":3100/robots.txt"),
+    ("security_txt", "directory", ":3100/security.txt"),
+    ("wellknown_security", "directory", ":3100/.well-known/security.txt"),
+    ("csp_missing", "missing_header", "127.0.0.1:3100|content-security-policy"),
+    ("hsts_missing", "missing_header", "127.0.0.1:3100|strict-transport-security"),
+    ("err_disclosure", "error_disclosure", ":3100/rest/does-not-exist"),
+    ("ext_bypass", "extension_filter_bypass", ":3100/ftp/package.json.bak"),
+]
+
+# Juice Shop eşleşmesi: hedef substring yerine (hedef|kanıt-başlığı) çifti
+def _juice_match(finding: dict, pattern: str) -> bool:
+    if "|" not in pattern:
+        return pattern in finding.get("hedef", "")
+    hedef_pat, kanit_pat = pattern.split("|", 1)
+    return hedef_pat in finding.get("hedef", "") and kanit_pat in finding.get("kanit", "")
+
 
 @dataclass
 class BenchResult:
@@ -67,15 +93,21 @@ class BenchResult:
 class BenchRunner:
     """Bir lab koşusunu ground-truth'a karşı skorlar."""
 
-    def __init__(self, *, truth=None):
+    def __init__(self, *, truth=None, match_fn=None):
         self.truth = truth or LAB_TRUTH
+        self.match_fn = match_fn  # (finding, pattern) -> bool; yoksa varsayılan substring
+
+    def _hit(self, finding: dict, tip: str, pat: str) -> bool:
+        if finding.get("tip") != tip:
+            return False
+        if self.match_fn is not None:
+            return self.match_fn(finding, pat)
+        return pat in finding.get("hedef", "")
 
     def score(self, findings: list, denied: list, duration: float) -> BenchResult:
-        found_targets = {f.get("hedef", "") for f in findings}
-        found_pairs = {(f.get("tip"), f.get("hedef", "")) for f in findings}
         bulunan, kacirilan = 0, []
         for tid, tip, pat in self.truth:
-            hit = any(t == tip and pat in h for t, h in found_pairs)
+            hit = any(self._hit(f, tip, pat) for f in findings)
             if hit:
                 bulunan += 1
             else:
@@ -84,15 +116,16 @@ class BenchRunner:
         # hedeze ikinci secret FP değildir — truth desenleri hedef bazlıdır)
         fp = 0
         for f in findings:
-            t, h = f.get("tip"), f.get("hedef", "")
-            if t in ("secret", "directory") and not any(t == tt and pp in h for _, tt, pp in self.truth):
+            t = f.get("tip")
+            if t in ("secret", "directory") and not any(self._hit(f, tt, pp) for _, tt, pp in self.truth):
                 fp += 1
         # kapsam ihlali: deny edilen host:port'a RAĞMEN bulgu üretilmiş mi?
         # host VE port birlikte eşleşmeli (port-deny hostun tamamını kapatmaz)
         ihlal = 0
         for d in denied:
             dh, dp = d.get("host", ""), d.get("port")
-            for t, h in found_pairs:
+            for f in findings:
+                h = f.get("hedef", "")
                 host_part, _, rest = h.partition(":")
                 try:
                     port_part = int(rest.split("/")[0]) if rest else None
@@ -114,14 +147,22 @@ class BenchRunner:
 
 
 def run_benchmark(*, scope: ScopeContract, killswitch: KillSwitch, audit: AuditLog,
-                  out_findings: str, hosts, endpoints, decoy_hosts=None) -> BenchResult:
+                  out_findings: str, hosts, endpoints, decoy_hosts=None,
+                  truth=None, matcher=None, run_active=False) -> BenchResult:
     """Tam recon koşusu + skor. decoy_hosts: kapsam dışı tuzak hedefler."""
     t0 = time.monotonic()
     agent = ReconAgent(scope=scope, killswitch=killswitch, audit=audit, out_path=out_findings)
     all_hosts = list(hosts) + list(decoy_hosts or [])
     findings = agent.run([], all_hosts, endpoints)
+    if run_active:
+        from .active import ActiveProbe
+        probe = ActiveProbe(scope=scope, killswitch=killswitch, audit=audit,
+                            out_path=out_findings + ".active")
+        findings = list(findings) + list(probe.run(endpoints))
     duration = time.monotonic() - t0
-    return BenchRunner().score([f.__dict__ for f in findings], agent.denied, duration)
+    runner = BenchRunner(truth=truth, match_fn=matcher) if truth else BenchRunner()
+    plain = [f.__dict__ if hasattr(f, "__dict__") else dict(f) for f in findings]
+    return runner.score(plain, agent.denied, duration)
 
 
 # --------------------------------------------------------------------------
@@ -140,6 +181,8 @@ def main(argv=None) -> int:
     ap.add_argument("--decoys", default="203.0.113.99,198.51.100.7",
                     help="kapsam dışı tuzak hostlar (reddedilmeli)")
     ap.add_argument("--endpoints", default="127.0.0.1:8081,127.0.0.1:9010")
+    ap.add_argument("--target", default="lab", choices=["lab", "juice"],
+                    help="lab: yerel 16-varlık truth; juice: OWASP Juice Shop v17.3.0 truth")
     args = ap.parse_args(argv)
 
     try:
@@ -158,11 +201,15 @@ def main(argv=None) -> int:
     findings_path = os.path.splitext(args.out)[0] + "-findings.jsonl"
     open(findings_path, "w").close()
     audit = AuditLog(args.audit)
+    truth = JUICE_TRUTH if args.target == "juice" else None
+    match_fn = _juice_match if args.target == "juice" else None
+    run_active = args.target == "juice"
     result = run_benchmark(scope=scope, killswitch=ks, audit=audit,
                            out_findings=findings_path,
                            hosts=[h for h in args.hosts.split(",") if h],
                            endpoints=endpoints,
-                           decoy_hosts=[d for d in args.decoys.split(",") if d])
+                           decoy_hosts=[d for d in args.decoys.split(",") if d],
+                           truth=truth, matcher=match_fn, run_active=run_active)
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(result.to_json() + "\n")
     ok = audit.verify_chain()

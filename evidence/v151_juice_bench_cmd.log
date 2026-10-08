@@ -1,0 +1,22 @@
+
+=== v1.5.1: TEKRARLANABİLİR JUICE SHOP BENCHMARK (2026-10-08) ===
+
+Artık benchmark tek komut:
+  python3 -m purpleloop bench --scope juice-scope.json --target juice \
+      --hosts 127.0.0.1 --endpoints 127.0.0.1:3100 --out juice.json ...
+
+SONUÇ (canlı Juice Shop v17.3.0, /tmp/juice-bench2.json):
+- recall: 14/14 = 1.0  (recon 12 + active 2: err_disclosure, ext_bypass)
+- fp_bulgu: 0
+- kapsam_ihlali: 0
+- scope_deny: 157 (tuzak hostlar reddedildi)
+- süre: 5.0 sn
+
+DEĞİŞİKLİKLER:
+- bench.py: JUICE_TRUTH (14 varlık) + --target {lab,juice} + match_fn deseni
+  (hedef|kanıt çifti eşleşmesi; missing_header'da kanıt başlığı şart)
+- BenchRunner genelleştirildi: match_fn enjeksiyonu, dict/dataclass karışık bulgu
+- run_benchmark: run_active bayrağı (recon+active birleşik skor)
+- Bu dosyanın kendisi de bir benchmark kaydı: iki koşum da 14/14, 0 FP
+
+REGRESYON: lab benchmark'ı da yeniden koşuldu — 16/16, 0 FP, 0 ihlal (değişiklik yok)
