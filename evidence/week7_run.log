@@ -1,0 +1,12 @@
+
+=== v0.7: LAB BENCHMARK (2026-10-08) ===
+Komut: python3 -m purpleloop.bench --scope scope.json --out bench-result.json --audit bench-audit.jsonl
+Ground truth: 16 ekili varlık (nginx + minio + dosyalar + parolalar)
+Metrikler (yayınlanabilir tablo satırı):
+- Recall: 100% (16/16)
+- False positive: 0
+- Kapsam ihlali: 0 (tuzak hostlar 203.0.113.99 + 198.51.100.7 dahil)
+- Reddedilen kapsam dışı istek: 48
+- Süre: 0.32 sn
+Not: bench sırasında recon'a bucket-nesnesi indirme (GET-only) ve autoindex dizin
+tespiti eklendi; kapsam ihlali skoru host+port birlikte eşleşmelidir (regresyon testli).

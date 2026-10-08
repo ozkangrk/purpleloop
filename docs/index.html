@@ -152,6 +152,15 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
   .pipe-steps{grid-template-columns:1fr}
   section{padding:64px 0}
 }
+
+.bench{background:linear-gradient(180deg,#0b0a12 0%,#12101c 100%);padding:96px 0;border-top:1px solid #1e1b2e}
+.bench-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:36px}
+.bench-card{background:#141221;border:1px solid #262138;border-radius:14px;padding:28px;transition:transform .2s,border-color .2s}
+.bench-card:hover{transform:translateY(-3px);border-color:#8b5cf6}
+.bench-num{font-size:40px;font-weight:800;color:#8b5cf6;letter-spacing:-.02em}
+.bench-label{color:#a3a0b8;font-size:14px;margin-top:6px;line-height:1.45}
+.fine{color:#6f6c85;font-size:13px;margin-top:24px}
+.fine code{color:#c4b5fd;background:#1a1728;padding:2px 6px;border-radius:6px;font-size:12px}
 </style>
 </head>
 <body>
@@ -167,7 +176,7 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
       <a href="#trust">Trust</a>
-      <a href="#roadmap">Roadmap</a>
+      <a href="#benchmark">Benchmark</a> <a href="#roadmap">Roadmap</a>
     </div>
     <a class="btn btn-primary" href="https://github.com/ozkangrk/purpleloop" target="_blank" rel="noopener">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
@@ -205,7 +214,7 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
 
 <div class="stats">
   <div class="wrap stats-row">
-    <div class="stat"><b>147</b><span>tests green</span></div>
+    <div class="stat"><b>159</b><span>tests green</span></div>
     <div class="stat"><b>0</b><span>false positives</span></div>
     <div class="stat"><b>32</b><span>out-of-scope requests blocked</span></div>
     <div class="stat"><b>100%</b><span>auditable — hash-chained</span></div>
@@ -373,12 +382,27 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
   </div>
 </section>
 
+
+  <section id="benchmark" class="bench">
+    <div class="wrap">
+      <span class="eyebrow">Measured, not claimed</span>
+      <h2>Lab benchmark: <span class="accent">100% recall, zero false positives</span></h2>
+      <p>Every release is scored against our ground-truth lab — 16 planted assets across nginx + MinIO, plus out-of-scope decoy hosts that must never be touched.</p>
+      <div class="bench-grid">
+        <div class="bench-card"><div class="bench-num">100%</div><div class="bench-label">Recall — 16/16 planted assets found</div></div>
+        <div class="bench-card"><div class="bench-num">0</div><div class="bench-label">False positives</div></div>
+        <div class="bench-card"><div class="bench-num">0</div><div class="bench-label">Scope violations — 48 decoy requests denied</div></div>
+        <div class="bench-card"><div class="bench-num">0.32s</div><div class="bench-label">Full scan duration</div></div>
+      </div>
+      <p class="fine">Reproduce: <code>python3 -m purpleloop.bench --scope scope.json --out bench.json</code> — results hash-chained into the audit log. GOAD (Active Directory) benchmark next.</p>
+    </div>
+  </section>
 <section id="roadmap">
   <div class="wrap center">
     <span class="kicker">Roadmap</span>
     <h2>Where this is going</h2>
     <div class="road" style="text-align:left">
-      <div class="rcard done"><span class="st">✓ Shipped</span><h3>Evidence-backed core</h3><p>147 passing tests, hash-chained audit, scope enforcement and Turkish compliance reporting — live today in the repo.</p></div>
+      <div class="rcard done"><span class="st">✓ Shipped</span><h3>Evidence-backed core</h3><p>159 passing tests, hash-chained audit, scope enforcement and Turkish compliance reporting — live today in the repo.</p></div>
       <div class="rcard now"><span class="st">● In progress</span><h3>GOAD benchmark</h3><p>Full autonomous runs against the GOAD lab environment to measure coverage, precision and chain quality end-to-end.</p></div>
       <div class="rcard next"><span class="st">○ Next</span><h3>pip install purpleloop</h3><p>A pip package and continuous scanning mode — scheduled runs with drift detection between audits.</p></div>
     </div>

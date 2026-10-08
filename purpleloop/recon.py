@@ -270,7 +270,8 @@ class ReconAgent:
                 if r is None:
                     continue
                 status, body, banner = r
-                if status == 200 and ("<html" not in body[:200].lower() or d.endswith((".env", ".aws-credentials", "secrets-old.txt")) or body.lstrip().startswith("<?xml")):
+                is_xml = body.lstrip().startswith("<?xml")
+                if status == 200 and not is_xml and ("<html" not in body[:200].lower() or "index of /" in body[:400].lower() or d.endswith((".env", ".aws-credentials", "secrets-old.txt"))):
                     self._emit("directory", f"{host}:{port}/{d}", f"HTTP {status} len={len(body)}", self._scope_ref(host))
                 for tip, kanit in scan_secrets(body):
                     self._emit("secret", f"{host}:{port}/{d}", kanit, self._scope_ref(host))
@@ -297,6 +298,18 @@ class ReconAgent:
                     self._emit("open_bucket", f"{host}:{port}/{b}/", f"anonymous list allowed (HTTP 200, len={len(body)})", self._scope_ref(host))
                     for tip, kanit in scan_secrets(body):
                         self._emit("secret", f"{host}:{port}/{b}/", kanit, self._scope_ref(host))
+                    # bucket listesinde geçen nesneleri indir, içerik tara (safe: GET only)
+                    for key in re.findall(r"<Key>([^<]+)</Key>", body)[:10]:
+                        if not self._gate(host, port, "GET"):
+                            continue
+                        robj = self.tx.http_get(host, port, f"/{b}/{key}")
+                        if robj is None:
+                            continue
+                        ostatus, obody, _ = robj
+                        if ostatus == 200:
+                            self._emit("directory", f"{host}:{port}/{b}/{key}", f"object readable (HTTP 200, len={len(obody)})", self._scope_ref(host))
+                            for otip, okanit in scan_secrets(obody):
+                                self._emit("secret", f"{host}:{port}/{b}/{key}", okanit, self._scope_ref(host))
 
     def run(self, base_domains: list, hosts: list, endpoints: list) -> list:
         self.audit.append("RECON_START",
