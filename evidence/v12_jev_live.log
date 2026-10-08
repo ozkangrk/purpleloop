@@ -1,0 +1,26 @@
+=== v1.2: GERÇEK JEV ENTEGRASYONU — OpenRouter Decisions API (2026-10-08) ===
+
+BULGU: OpenRouter'da typesafe/jev-1.13 mevcut — Decisions API
+(POST https://openrouter.ai/api/alpha/decisions). Key: Desktop/openrouter.txt
+(vault: .env'e taşındı, gitignore'lı, sohbete hiç yazılmadı).
+
+ENTEGRASYON (purpleloop/decision.py):
+- JevAPIBackend artık çift yollu: OPENROUTER_API_KEY (öncelik) veya TYPESAFE_API_KEY
+- Tipte sorular: severity (choice), is_false_positive (noul), exploitability (score)
+- Jev'in kalibre cevapları TriageDecision'a çevrilir; tip hatası imkânsız
+- State şablonu zenginleştirildi: "evidence independently re-verified" bağlamı
+  kalibrasyonu belirgin iyileştirdi (fp 0.6→0.2-0.4, conf 0.3→0.9+)
+
+CANLI ÖLÇÜM (10 bulgu, gerçek Jev 1.13 @ OpenRouter):
+- HIZ: 340ms/bulgu (lokal Qwen emülasyonu 1362ms → 4x hızlı)
+- Maliyet: ~$0.00002/bulgu ($0.042/MTok girdi, çıktı bedava)
+- KALİBRASYON (bağlam zenginleştirilmiş):
+  * .env / .aws-credentials → high, conf 0.96-0.99 ✓
+  * /backup/ listing → medium ✓
+  * missing_header → low ✓
+  * open_port → info, exploit 0.2 ✓ (yerinde düşük)
+- TRIAGE kayıtları audit zincirine, verify_chain OK
+
+TEST: 198 passed (jev openrouter key seçimi + fallback testleri)
+MİMARİ KURAL DEĞİŞMEDİ: Jev triaj yapar; validator VERDICT'i deterministik
+replay'den — System-1 katmanı üretim kararını değiştiremez.

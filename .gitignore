@@ -11,3 +11,5 @@ dist/
 benchmarks/*.json
 benchmarks/*.parquet
 evidence/continuous/
+
+.env

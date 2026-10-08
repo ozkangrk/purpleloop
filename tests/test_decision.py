@@ -42,6 +42,7 @@ def test_static_backend_rules():
 
 def test_backend_selection_falls_back(monkeypatch):
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     # auto: Jev yok -> lokal denenir -> o da hata verirse static
     b = triage_backend("static")
     assert isinstance(b, StaticBackend)
@@ -49,8 +50,16 @@ def test_backend_selection_falls_back(monkeypatch):
 
 def test_jev_backend_requires_key(monkeypatch):
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     with pytest.raises(ValueError):
         JevAPIBackend()
+
+
+def test_jev_backend_prefers_openrouter_key(monkeypatch):
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
+    b = JevAPIBackend()
+    assert b.name == "jev-openrouter" and b.model == "typesafe/jev-1.13"
 
 
 # ---------- lokal Qwen (canlıysa) ----------
