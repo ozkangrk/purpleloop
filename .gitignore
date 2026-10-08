@@ -5,3 +5,6 @@ KILLSWITCH
 run*/
 *.jsonl
 !scope.json
+build/
+dist/
+*.egg-info/
