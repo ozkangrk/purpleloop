@@ -1,0 +1,13 @@
+
+=== HAFTA-6: SALDIRI ZİNCİRİ + TÜRKÇE UYUM RAPORU (2026-10-08) ===
+Komut: harness(recon,validator) → exploit → chainreact --run-dir evidence/run-week6
+pytest: 147 passed (6 yeni chainreact testi)
+Sonuç: 12 bulgu / 12 CONFIRMED / 1 EXPLOITED
+Saldırı zincirleri (3):
+  [high] Sızan kimlik bilgisi → herkese açık bucket → veri erişimi — 7 adım
+  [high] Açık dizin listeleme → hassas dosya ifşası — 9 adım
+  [medium] Erişilebilir S3 API → anonim bucket okuma — 2 adım
+Rapor: compliance-report-tr.md (SHA256 ilk16: f100102dc3f133dc)
+- Yönetici özeti + KVKK/ISO 27001/SOC 2 eşlemeli bulgu tablosu
+- Her iddia FINDING/VALIDATION/EXPLOIT_PROOF audit kayıtlarına dayanıyor
+- verify_chain OK; ATTACK_PATH + COMPLIANCE_REPORT kayıtları zincire eklendi
