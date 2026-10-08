@@ -39,6 +39,8 @@ def _build_parser():
          "Nuclei backend: güçlü tarayıcı scope+audit arkasında"),
         ("pentest", "purpleloop.pentest",
          "White-hat sızma denemeleri: auth bypass / traversal / oturum"),
+        ("bounty", "purpleloop.bounty",
+         "Bounty harness: dene → skorboard doğrula → ödül"),
     ]:
         sp = sub.add_parser(name, help=help_, add_help=True)
         sp.set_defaults(_module=mod)

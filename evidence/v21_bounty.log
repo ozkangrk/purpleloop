@@ -1,0 +1,36 @@
+=== v2.1: BOUNTY HARNESS — skorboard-doğrulamalı sızma ölçümü (2026-10-08) ===
+
+ARAŞTIRMA TEMELİ
+- CTF ajan benchmarkları: Cybench (40 pro CTF; AISI'ler, Anthropic/xAI
+  model kartlarında kullanıyor), EnIGMA (InterCode-CTF %72), InterCode-CTF,
+  NYU CTF Bench, CTFusion (MCP üzerinden CTF değerlendirme!)
+- BountyBench: dolar-etkili saldırı/savunma değerlendirmesi
+- ORTAK DESEN: ajan dener; DOĞRULAYICI AJAN DEĞİL, hedefin kendisidir
+  (flag/skorboard). Bizde: Juice Shop /api/challenges 'solved' alanı.
+
+MODÜL: purpleloop/bounty.py — BountyHarness
+1) Vektör seti (10): keşif (skorboard/metrics/robots/security.txt) +
+   sıZMA (SQLi UNION şema+kullanıcı, null-byte uzantı bypass, easter egg).
+   kanit_imza: 200 yetmez — gövdede içerik kanıtı şart (SQLi'de 'CREATE TABLE')
+2) Ödül modeli (BountyBench tarzı): zorluk 1-6 → low/medium/high/critical
+   → 100/400/900/2000 puan
+3) DOĞRULAMA: koşu öncesi/sonrası skorboard farkı = yeni çözülenler;
+   yalnız sunucu kaydına geçen çözüm 'bounty_solve' bulgusu üretir.
+   Ajanın 'başarım iddiası' hiçbir zaman kendisi doğrulayamaz.
+4) Fail-closed: scope kapısı her vektörde; kill-switch; audit zinciri
+
+CANLI KANIT (temiz Juice Shop v17.3.0 konteyneri, 109 challenge / 0 çözülmüş):
+Tek koşu → 6 challenge ÇÖZÜLDÜ (sunucu onaylı):
+  [critical] Poison Null Byte          2000p (null-byte uzantı filtresi atlatma)
+  [critical] Forgotten Developer Backup 2000p (package.json.bak sızdırma)
+  [medium  ] Security Policy            400p
+  [low     ] Confidential Document      100p
+  [low     ] Error Handling             100p
+  [low     ] Exposed Metrics            100p
+Toplam: 4700 puan, YENİ=6/6, audit zinciri geçerli.
+SQLi vektörleri bu konteynerde çözmedi (sunucu union null'larını sanitize
+etti) — iddia değil, ölçüm.
+
+TESTLER: 6 yeni (test_bounty.py) → 297 passed + 2 skipped
+- sunucu-doğrulama fark mantığı (önceden çözülmüş sayılmaz),
+  ödül haritası, vektör şeması, scope-gate, kill-switch
