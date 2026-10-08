@@ -1,0 +1,10 @@
+
+=== v0.8: SÜREKLİ İZLEME (2026-10-08) ===
+Komut: python3 -m purpleloop monitor --scope scope.json --state monitor-state.json --audit monitor-audit.jsonl --interval 0 --max-cycles 3
+pytest: 169 passed (10 yeni monitor testi)
+Canlı sonuç:
+- Döngü 1: 13 NEW bulgu, 5 ALERT (yeni secret/open_bucket sızıntıları) → audit'e ALERT kaydı
+- Döngü 2-3: 13 UNCHANGED, 0 NEW/RESOLVED → delta motoru stabil
+- Kill-switch her döngüde kontrol edilir (test kanıtlı: MONITOR_HALTED)
+- Audit zinciri: geçerli; ALERT kayıt sayısı: 5
+CLI: python3 -m purpleloop monitor ... (unified CLI'ya monitor + bench alt komutları eklendi)

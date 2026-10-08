@@ -123,7 +123,7 @@ h1 em{font-style:normal;color:var(--purple-lt)}
 .tl p{color:var(--muted);font-size:13.5px;margin-top:3px}
 
 /* roadmap */
-.road{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+.road{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:48px}
 .rcard{border:1px dashed var(--line2);border-radius:14px;padding:24px;background:transparent;transition:border-color .15s,background .15s}
 .rcard:hover{border-color:var(--purple);background:rgba(139,92,246,.04)}
 .rcard .st{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
@@ -161,6 +161,38 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
 .bench-label{color:#a3a0b8;font-size:14px;margin-top:6px;line-height:1.45}
 .fine{color:#6f6c85;font-size:13px;margin-top:24px}
 .fine code{color:#c4b5fd;background:#1a1728;padding:2px 6px;border-radius:6px;font-size:12px}
+
+/* eyebrow + accent (benchmark headings) */
+.eyebrow{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#a78bfa;margin-bottom:14px}
+.accent{color:#a78bfa}
+
+/* terminal title bars: traffic-light dots */
+.term-bar{align-items:center}
+.term-bar i:nth-child(1){background:#f87171}
+.term-bar i:nth-child(2){background:#f59e0b}
+.term-bar i:nth-child(3){background:#34d399}
+.term-title{margin-left:10px;font-family:var(--mono);font-size:11.5px;color:var(--dim);letter-spacing:.02em}
+
+/* feature card hover glow */
+.card{transition:border-color .2s,transform .2s,box-shadow .2s}
+.card:hover{border-color:rgba(139,92,246,.55);box-shadow:0 0 0 1px rgba(139,92,246,.25),0 8px 28px rgba(139,92,246,.12)}
+
+/* continuous monitoring section */
+.mon{padding:96px 0}
+.mon-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:44px;text-align:left}
+.mon-steps{display:flex;flex-direction:column;gap:14px}
+.mstep{display:flex;gap:16px;border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--panel);transition:border-color .15s}
+.mstep:hover{border-color:var(--purple)}
+.mstep .n{flex:none;width:30px;height:30px;border-radius:8px;background:rgba(139,92,246,.15);color:var(--purple-lt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.mstep b{font-size:15px}
+.mstep p{color:var(--muted);font-size:13.5px;margin-top:4px}
+@media(max-width:900px){.mon-grid{grid-template-columns:1fr}}
+
+/* reproduce box (trust) */
+.repro{margin-top:28px;border:1px solid rgba(245,158,11,.35);border-radius:14px;overflow:hidden;background:#0e0c17}
+.repro-hd{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(245,158,11,.06);border-bottom:1px solid rgba(245,158,11,.2);font-weight:600;font-size:14px;color:var(--amber)}
+.repro-body{padding:16px 18px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow-x:auto}
+.repro-body .cmt{color:var(--dim)}
 </style>
 </head>
 <body>
@@ -176,6 +208,7 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
       <a href="#trust">Trust</a>
+      <a href="#monitor">Monitor</a>
       <a href="#benchmark">Benchmark</a> <a href="#roadmap">Roadmap</a>
     </div>
     <a class="btn btn-primary" href="https://github.com/ozkangrk/purpleloop" target="_blank" rel="noopener">
@@ -189,7 +222,7 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
   <div class="hero-bg"></div>
   <div class="hero-glow"></div>
   <div class="wrap hero-in">
-    <span class="badge"><span class="dot"></span> Open source &middot; Apache-2.0 &middot; v0.1</span>
+    <span class="badge"><span class="dot"></span> Open source &middot; Apache-2.0 &middot; v0.7</span>
     <h1>Autonomous security testing <em>you can prove</em></h1>
     <p class="lede">PurpleLoop is a fail-closed pentest and compliance harness. Every finding is deterministically validated, every action is hash-chained to an audit log, and every request outside the scope contract is denied.</p>
     <div class="cta-row">
@@ -197,7 +230,7 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
       <a class="btn btn-outline-lg" href="#how">See it live ↓</a>
     </div>
     <div class="hero-term">
-      <div class="term-bar"><i></i><i></i><i></i></div>
+      <div class="term-bar"><i></i><i></i><i></i><span class="term-title">purpleloop — run</span></div>
       <div class="term-body">
 <span class="t-dim">$</span> purpleloop run --scope scope.json<br>
 <span class="t-p">[scope]</span> contract loaded · SHA256 chain started <span class="t-dim">(fail-closed)</span><br>
@@ -205,7 +238,7 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
 <span class="t-p">[validator]</span> 12/12 <span class="t-g">CONFIRMED</span> · 0 false positives<br>
 <span class="t-p">[exploit]</span> 1 <span class="t-a">safe-mode EXPLOITED</span> proof captured<br>
 <span class="t-p">[chain]</span> 3 attack paths reconstructed<br>
-<span class="t-r">[scope]</span> 32 out-of-scope requests <span class="t-r">DENIED</span> · 0 violations<br>
+<span class="t-r">[scope]</span> 48 out-of-scope requests <span class="t-r">DENIED</span> · 0 violations<br>
 <span class="t-g">✓ report</span> KVKK / ISO 27001 / SOC 2 (TR) written · audit log verified
       </div>
     </div>
@@ -216,8 +249,8 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
   <div class="wrap stats-row">
     <div class="stat"><b>159</b><span>tests green</span></div>
     <div class="stat"><b>0</b><span>false positives</span></div>
-    <div class="stat"><b>32</b><span>out-of-scope requests blocked</span></div>
-    <div class="stat"><b>100%</b><span>auditable — hash-chained</span></div>
+    <div class="stat"><b>48</b><span>out-of-scope requests denied</span></div>
+    <div class="stat"><b>100%</b><span>lab recall — 16/16 assets</span></div>
   </div>
 </div>
 
@@ -233,6 +266,7 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
         <div class="rowlab">Evidence trail</div><div class="old"><span class="ic-neg">✕</span>Opaque, unauditable</div><div class="new"><span class="ic-pos">✓</span>SHA256 hash-chained audit log</div>
         <div class="rowlab">Targeting</div><div class="old"><span class="ic-neg">✕</span>Unbounded by default</div><div class="new"><span class="ic-pos">✓</span>Scope contract, fail-closed</div>
         <div class="rowlab">Reporting</div><div class="old"><span class="ic-neg">✕</span>Raw CVE list</div><div class="new"><span class="ic-pos">✓</span>KVKK / ISO 27001 / SOC 2-mapped Turkish management report</div>
+        <div class="rowlab">Cadence</div><div class="old"><span class="ic-neg">✕</span>One-shot scan reports</div><div class="new"><span class="ic-pos">✓</span>Continuous delta + alerts</div>
       </div>
     </div>
   </div>
@@ -316,13 +350,13 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
   <div class="wrap center">
     <span class="kicker">Features</span>
     <h2>Built like a control plane, not a toy</h2>
-    <p class="sub">Six mechanisms that make autonomous offensive security safe enough to point at real infrastructure.</p>
+    <p class="sub">Six mechanisms that make autonomous offensive security safe enough to point at real infrastructure. The seventh keeps watch after the scan ends.</p>
     <div class="grid6" style="text-align:left">
       <div class="card">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
         <h3>Scope Contract</h3>
         <p>Targets, ports and methods are declared up front. Out-of-scope requests are rejected with SCOPE_DENY — fail-closed by design, not by configuration.</p>
-        <span class="tag">32 requests denied · 0 violations</span>
+        <span class="tag">48 requests denied · 0 violations</span>
       </div>
       <div class="card">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/><path d="M9 9h6v6H9z"/></svg></div>
@@ -352,6 +386,12 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
         <p>Findings are mapped to controls and delivered as a Turkish management report aligned with KVKK, ISO 27001 and SOC 2 — ready for your auditor, not your grep.</p>
         <span class="tag">KVKK · ISO 27001 · SOC 2</span>
       </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2.5"/><path d="M12 3.5v-1M20.5 12h1M12 20.5v1M3.5 12h-1"/></svg></div>
+        <h3>Continuous Monitoring</h3>
+        <p>Cron-scheduled delta scans compare each cycle against the last known state. Only NEW and RESOLVED findings surface — and critical changes trigger alerts the moment they appear.</p>
+        <span class="tag">delta scan · NEW/RESOLVED · alert</span>
+      </div>
     </div>
   </div>
 </section>
@@ -379,6 +419,18 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
         </div>
       </div>
     </div>
+    <div class="repro">
+      <div class="repro-hd">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z"/><path d="M14 3v6h6"/><path d="m9 14 2 2 4-4"/></svg>
+        Reproduce it yourself — verify every claim on this page
+      </div>
+      <div class="repro-body">
+<span class="t-dim">$</span> git clone https://github.com/ozkangrk/purpleloop && cd purpleloop<br>
+<span class="t-dim">$</span> pip install pytest<br>
+<span class="t-dim">$</span> python3 -m purpleloop.bench<br>
+<span class="t-dim"># 159 tests green · 100% recall · 0 false positives · 48 scope denies — your machine, your numbers.</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -397,14 +449,49 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--bg2)}
       <p class="fine">Reproduce: <code>python3 -m purpleloop.bench --scope scope.json --out bench.json</code> — results hash-chained into the audit log. GOAD (Active Directory) benchmark next.</p>
     </div>
   </section>
+
+<section id="monitor" class="mon">
+  <div class="wrap">
+    <span class="eyebrow">Continuous monitoring</span>
+    <h2>Point-in-time scans age in minutes.<br><span class="accent">Deltas age never.</span></h2>
+    <div class="mon-grid">
+      <div class="mon-steps">
+        <div class="mstep">
+          <span class="n">1</span>
+          <div><b>Scan</b><p>A cron-scheduled cycle re-runs the validated pipeline under the same scope contract — every request still fail-closed.</p></div>
+        </div>
+        <div class="mstep">
+          <span class="n">2</span>
+          <div><b>Compare</b><p>The cycle's confirmed findings are diffed against the previous state; only NEW and RESOLVED items are kept.</p></div>
+        </div>
+        <div class="mstep">
+          <span class="n">3</span>
+          <div><b>Alert</b><p>Critical changes — a leaked secret, a new exposure — fire an alert line the same cycle, not in next quarter's report.</p></div>
+        </div>
+      </div>
+      <div class="hero-term" style="margin-top:0">
+        <div class="term-bar"><i></i><i></i><i></i><span class="term-title">purpleloop — monitor</span></div>
+        <div class="term-body">
+<span class="t-dim">$</span> purpleloop monitor --scope scope.json --every 15m<br>
+<span class="t-p">[cycle 7]</span> scan complete · 12 findings <span class="t-g">CONFIRMED</span><br>
+<span class="t-p">[delta]</span> <span class="t-g">1 RESOLVED</span> · <span class="t-a">2 NEW</span> · 9 unchanged<br>
+<span class="t-p">[delta]</span> exposed-bucket <span class="t-g">RESOLVED</span> (was cycle 5)<br>
+<span class="t-r">ALERT secret NEW 127.0.0.1:8081/backup/.env</span><br>
+<span class="t-dim">[chain] cycle 7 appended · audit log verified · next cycle in 15m</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 <section id="roadmap">
   <div class="wrap center">
     <span class="kicker">Roadmap</span>
     <h2>Where this is going</h2>
     <div class="road" style="text-align:left">
       <div class="rcard done"><span class="st">✓ Shipped</span><h3>Evidence-backed core</h3><p>159 passing tests, hash-chained audit, scope enforcement and Turkish compliance reporting — live today in the repo.</p></div>
+      <div class="rcard done"><span class="st">✓ Shipped</span><h3>Continuous scanning</h3><p>Cron-driven delta scans with NEW/RESOLVED diffs and critical-change alerts — monitoring mode, shipped.</p></div>
       <div class="rcard now"><span class="st">● In progress</span><h3>GOAD benchmark</h3><p>Full autonomous runs against the GOAD lab environment to measure coverage, precision and chain quality end-to-end.</p></div>
-      <div class="rcard next"><span class="st">○ Next</span><h3>pip install purpleloop</h3><p>A pip package and continuous scanning mode — scheduled runs with drift detection between audits.</p></div>
+      <div class="rcard next"><span class="st">○ Next</span><h3>pip install purpleloop</h3><p>A pip package so the harness installs in one command and runs anywhere Python does.</p></div>
     </div>
   </div>
 </section>

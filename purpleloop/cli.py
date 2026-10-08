@@ -21,8 +21,12 @@ def _build_parser():
          "Safe-mode exploit aşaması"),
         ("chain", "purpleloop.chainreact",
          "Attack-path / zincir reaksiyon analizi"),
+        ("monitor", "purpleloop.monitor",
+         "Sürekli izleme: delta tarama + kritik değişim alert'leri"),
+        ("bench", "purpleloop.bench",
+         "Lab benchmark: recall / FP / kapsam-ihlali metrikleri"),
         ("dashboard", "purpleloop.dashboard",
-         "Sonuç panosu (henüz yayınlanmadı)"),
+         "Sonuç panosu"),
     ]:
         sp = sub.add_parser(name, help=help_, add_help=True)
         sp.set_defaults(_module=mod)
