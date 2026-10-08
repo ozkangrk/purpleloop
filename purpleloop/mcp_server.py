@@ -4,7 +4,9 @@ Mimari kural: MCP katmanı İNCE sarmalayıcıdır; kontrol düzlemi (scope/audi
 kill-switch) ve tarama motoru mevcut modüllerde kalır. Server hiçbir doğrudan
 ağ çağrısı yapmaz — her şey ScopeGatedTransport'tan geçer.
 
-Araçlar (5): status, scope_check, scan, killswitch, audit.
+Araçlar (7): status, scope_check, scan, killswitch, audit, campaign, gate.
+campaign ve gate v1.9 ekleme: mevcut 5 aracın adı/davranışı değişmez
+(test_mcp_server.py'deki isim sırası korunur — yeni araçlar SONA eklenir).
 
 Çalıştırma:
   python3 -m purpleloop.mcp_server --scope scope.json --out-dir run
@@ -84,6 +86,40 @@ TOOL_SPECS = [
             "additionalProperties": False,
         },
     },
+    {
+        "name": "campaign",
+        "description": "Otonom kampanya orkestratörünü koşturur: recon → "
+                       "deterministik önceliklendirme → bütçeli derin prob. "
+                       "Kill-switch aktifse halted döner (fail-closed).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "hosts": {"type": "array", "items": {"type": "string"}},
+                "endpoints": {"type": "array", "items": {"type": "string"}},
+                "max_steps": {"type": "integer", "minimum": 1, "maximum": 100,
+                              "default": 10},
+            },
+            "required": ["hosts"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "gate",
+        "description": "Bir out_dir'deki findings.jsonl + active-findings.jsonl "
+                       "bulgularını PolicyGate eşiklerine vurur: durum "
+                       "(PASS/FAIL), error/warning sayıları.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "out_dir": {"type": "string",
+                            "description": "findings.jsonl içeren dizin"},
+                "max_error": {"type": "integer", "minimum": 0, "default": 0},
+                "max_warning": {"type": "integer", "minimum": 0, "default": 10},
+            },
+            "required": ["out_dir"],
+            "additionalProperties": False,
+        },
+    },
 ]
 
 
@@ -104,7 +140,10 @@ def _parse_endpoints(endpoints, hosts):
 def _read_findings(out_dir):
     import glob
     all_f = []
-    for name in ("findings.jsonl", "active-findings.jsonl"):
+    # scan çıktıları + kampanya çıktıları (campaign-findings.jsonl) birlikte;
+    # dosya yoksa boş — gate temiz dizinde PASS der
+    for name in ("findings.jsonl", "active-findings.jsonl",
+                 "campaign-findings.jsonl", "recon-findings.jsonl"):
         fpath = os.path.join(out_dir, name)
         if os.path.exists(fpath):
             with open(fpath, encoding="utf-8") as f:
@@ -123,8 +162,13 @@ def _read_audit_records(audit):
 # Sunucu kurulumu
 # ---------------------------------------------------------------------------
 
-def build_server(scope, audit, killswitch, out_dir, transport_factory=None):
-    """MCPServer döndürür; transport_factory testlerde FakeTransport verir."""
+def build_server(scope, audit, killswitch, out_dir, transport_factory=None,
+                 campaign_out_dir=None):
+    """MCPServer döndürür; transport_factory testlerde FakeTransport verir.
+
+    campaign_out_dir: campaign aracının bulgu/recon dosyalarını yazacağı dizin
+    (default 'campaign-run'). Mevcut 5 aracın davranışı bundan etkilenmez.
+    """
     from mcp.server.mcpserver.server import MCPServer
 
     class _ActiveStageAdapter:
@@ -204,12 +248,91 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None):
         return _j({"gecerli": ok, "kayit_sayisi": len(records),
                    "son_kayitlar": records[-tail:]})
 
+    # ---- v1.9: campaign + gate (yalnız EKLEME; mevcut araçlara dokunmaz) ----
+
+    campaign_out = campaign_out_dir or "campaign-run"
+
+    def _campaign(hosts, endpoints=None, max_steps: int = 10) -> str:
+        """Otonom kampanya: CampaignOrchestrator'ı koşturup özet döner.
+
+        Fail-closed: kill-switch aktifse hiçbir prob koşmaz, halted=True.
+        """
+        from .campaign import CampaignOrchestrator
+        from .recon import ReconAgent
+        from .active import ActiveProbe
+
+        if killswitch.is_active():
+            audit.append("KILLSWITCH_HALT", stage="mcp:campaign")
+            return _j({"halted": True, "adim_sayisi": 0,
+                       "reason": "kill-switch aktif",
+                       "bulgu_tipleri": [], "bulgular": [],
+                       "uygulanan_hedefler": [],
+                       "audit_chain_valid": audit.verify_chain()})
+
+        eps = _parse_endpoints(endpoints, hosts)
+        os.makedirs(campaign_out, exist_ok=True)
+        probe = ActiveProbe(
+            scope=scope, killswitch=killswitch, audit=audit,
+            out_path=os.path.join(campaign_out, "campaign-findings.jsonl"),
+            transport=raw)
+        registry = {
+            "sqli_data_leak": probe.probe_sqli_leak,
+            "extension_filter_bypass": probe.probe_extension_bypass,
+            "error_disclosure": probe.probe_error_disclosure,
+        }
+
+        def _recon():
+            agent = ReconAgent(
+                scope=scope, killswitch=killswitch, audit=audit,
+                out_path=os.path.join(campaign_out, "recon-findings.jsonl"),
+                transport=raw)
+            return agent.run([], hosts, eps)
+
+        orch = CampaignOrchestrator(
+            scope=scope, killswitch=killswitch, audit=audit,
+            out_dir=campaign_out, recon_findings_provider=_recon,
+            probe_registry=registry, max_steps=max_steps)
+        report = orch.run(eps)
+        bulgular = report.get("bulgular", [])
+        return _j({
+            "halted": bool(report.get("killswitch_halt")),
+            "adim_sayisi": report.get("adim_sayisi", 0),
+            "bulgu_tipleri": sorted({f.get("tip", "") for f in bulgular}),
+            "bulgular": bulgular,
+            "uygulanan_hedefler": report.get("uygulanan_hedefler", []),
+            "advisor_rejects": report.get("advisor_rejects", 0),
+            "campaign_out_dir": campaign_out,
+            "audit_chain_valid": audit.verify_chain(),
+        })
+
+    def _gate(out_dir: str, max_error: int = 0, max_warning: int = 10) -> str:
+        """out_dir bulgularını PolicyGate eşiklerine vurur (PASS/FAIL).
+
+        findings.jsonl + active-findings.jsonl birlikte okunur; dosya yoksa
+        boş bulgu listesiyle değerlendirme yapılır (durum PASS).
+        """
+        from .platform_layer import PolicyGate
+
+        findings = _read_findings(out_dir)
+        karar = PolicyGate(max_error=max_error,
+                           max_warning=max_warning).evaluate(findings)
+        return _j({
+            "durum": karar["durum"],
+            "error": karar["error"],
+            "warning": karar["warning"],
+            "esik": karar["esik"],
+            "bulgu_sayisi": len(findings),
+            "out_dir": out_dir,
+        })
+
     handlers = {
         "status": _status,
         "scope_check": _scope_check,
         "scan": _scan,
         "killswitch": _killswitch,
         "audit": _audit,
+        "campaign": _campaign,
+        "gate": _gate,
     }
     for spec in TOOL_SPECS:
         server.add_tool(handlers[spec["name"]], name=spec["name"],

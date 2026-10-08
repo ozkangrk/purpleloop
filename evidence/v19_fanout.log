@@ -1,0 +1,37 @@
+=== v1.9: SUBAGENT FAN-OUT — notify + report_hub + MCP campaign/gate (2026-10-08) ===
+
+3 paralel subagent (deleg_cc9d8c86, glm-5.3, ~3dk) + ebeveyn doğrulama
+ve 2 entegrasyon düzeltmesi.
+
+1) purpleloop/notify.py — BULGU ALARM KANALLARI
+- SlackWebhook / WebhookGeneric (urllib POST) / FileSink (JSONL)
+- notify(): error-level bulguları dağıtır; kanal hatası turu DURDURMAZ
+  (NOTIFY_ERROR audit kaydı, non-blocking)
+- dry-run bayrağı: ağ çağrısı olmadan ne gönderileceğini basar
+- EBEVEYN DÜZELTMESİ: _hata_seviyesi Finding şemasındaki olmayan
+  'severity' alanını arıyordu → tip alanından platform_layer._SEVERITY
+  ile türetme eklendi (dry-run artık sqli_data_leak'i yakalıyor)
+- Canlı: 1 error bulgu + FAIL policy file kanalına düştü
+
+2) purpleloop/report_hub.py — ROL-BAZLI RAPORLAR (v1.0 roadmap maddesi)
+- yonetici_ozeti: tek cümle risk + eşik + top-3 kritik tablo + aksiyonlar
+- denetci_raporu: bulgu→audit sha256 izlenebilirlik tablosu + zincir doğrulaması
+- teknik_detay: bulgu başına yeniden üretilebilir curl komutu + kanıt + severity
+- Canlı: gerçek Juice bulgularıyla 3 rapor üretildi (932/1803/5722 bayt)
+
+3) MCP campaign + gate ARAÇLARI
+- campaign(hosts, endpoints, max_steps): otonom döngüyü ajan tetikleyebilir
+  (kill-switch aktifse hiç prob koşmadan halted=True)
+- gate(out_dir): bulguları PolicyGate'e vurur
+- EBEVEYN DÜZELTMESİ: _read_findings campaign-findings.jsonl ve
+  recon-findings.jsonl'ı da okumuyordu → eklendi; taze süreçte
+  doğrulandı: 17 bulgu → FAIL (error=1 sqli)
+- 5 mevcut aracın adı/sırası/davranışı değişmedi (test güvenceli)
+
+DOĞRULAMA (ebeveyn, çocuk öz-raporuna güvenmeden):
+- python3 -m pytest tests/ -q → 279 passed
+- 3 yeni/güncellenmiş CLI --help exit 0 (notify, report_hub, mcp_server)
+- notify dry-run + gerçek gönderim canlı bulgularla
+- 3 rapor dosyası gerçek bulgulardan üretildi
+- MCP campaign canlı: adim=3, tipler=[error_disclosure, extension_filter_bypass,
+  sqli_data_leak]; MCP gate taze süreçte: FAIL, 17 bulgu, error=1

@@ -78,7 +78,9 @@ async def test_build_server_registers_five_tools(tmp_path):
                        out_dir=str(tmp_path))
     tools = await srv.list_tools()
     names = [t.name for t in tools]
-    assert names == ["status", "scope_check", "scan", "killswitch", "audit"]
+    # v1.9: campaign + gate eklendi; ilk 5 aracın adı ve SIRASI değişmez
+    assert names[:5] == ["status", "scope_check", "scan", "killswitch", "audit"]
+    assert "campaign" in names and "gate" in names
 
 
 def test_tool_specs_documented():
