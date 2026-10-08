@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" width="640" height="160">
+  <!-- PurpleLoop logo: square mark + wordmark -->
+  <defs>
+    <linearGradient id="plg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <!-- square mark -->
+  <g>
+    <rect x="16" y="16" width="128" height="128" rx="28" fill="#15121f"/>
+    <rect x="16" y="16" width="128" height="128" rx="28" fill="none" stroke="url(#plg)" stroke-width="3"/>
+    <path d="M 96 52 H 64 a 24 24 0 0 0 0 48 H 96 a 24 24 0 0 0 0 -48 Z" fill="none" stroke="url(#plg)" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="96" cy="108" r="7" fill="#f59e0b"/>
+  </g>
+  <!-- wordmark -->
+  <text x="176" y="98" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="52" font-weight="700" fill="#f4f2fa" letter-spacing="-1">Purple</text>
+  <text x="330" y="98" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="52" font-weight="700" fill="url(#plg)" letter-spacing="-1">Loop</text>
+  <text x="178" y="124" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="15" fill="#8e86a3" letter-spacing="4">AUDITABLE OFFENSIVE SECURITY</text>
+</svg>

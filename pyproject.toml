@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "purpleloop"
+version = "0.6.0"
+description = "Fail-closed security harness for authorized penetration testing: scope gate, audit chain, kill-switch, recon, validator, safe-mode exploit, attack-path analysis."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Gurkan Ozkan" }]
+keywords = ["security", "pentest", "harness", "audit", "authorization"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+
+[project.scripts]
+purpleloop = "purpleloop.cli:main"
+
+[tool.setuptools]
+packages = ["purpleloop"]
