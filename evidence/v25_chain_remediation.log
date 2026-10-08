@@ -1,0 +1,30 @@
+=== v2.5: ZİNCİRLEME SÖMÜRÜ + DÜZELTME ÖNERİLERİ (2026-10-08) ===
+
+İSTEK: "agent gerçekten sızmalı, hacklemeye çalışmalı, kalıcı hasar
+hariç; açıkları bulup test edip rapor + düzeltme önerisi vermeli."
+
+1) ZİNCİRLEME SÖMÜRÜ (purpleloop/chainexploit.py)
+- Gerçek saldırgan mantığı: bul → gövde çek → türet → sömür → kanıtla
+- Türetme kuralları: dizin listesi→dosyalar; SQLi e-postaları→kimlik
+  yüzeyi; hata ifşası→açığa çıkan yollar
+- Her adım propose kapısından (gerekçe+scope+zrarlılık+hız); max_depth
+- KALICI HASAR YOK: GET-only; yıkıcı payload filtrede RED (testli)
+- Erişim kanıtı: 403/404 beklenen duyarlı dosya 200+dolu dönüyorsa
+  zincir kanıtı (statik varlık css/png HARİÇ — FP kapısı)
+- CANLI (Juice Shop): directory→/ftp/acquisitions.md (909B gizli M&A)
+  ve →announcement_encrypted.md (10KB) zincirleri; audit geçerli
+- Ebeveyn hata ayıklaması: 3 gizli tuzak çözüldü — timeout 4sn→10sn
+  (yavaş listing), gövde özeti 400→10K (linkler 8.7K+ konumda),
+  türetme penceresi 8K→10K hizası
+
+2) DÜZELTME ÖNERİLERİ (purpleloop/remediation.py)
+- 19 bulgu tipi için somut bilgi tabanı: başlık, risk(kanıtlı),
+  adımlar(2-5), OWASP referansı, doğrulama testi
+- rapor_teknik.md artık her bulgunun altında 'Düzeltme Önerisi'
+  bölümü içeriyor (canlı: 16 bölüm)
+
+3) Tam akış: tarama → zincir sömürü → kanıt → remediation'lı rapor
+   (chain_live.py betiği kanıt olarak repo dışı + evidence log)
+
+TESTLER: 346 passed + 2 skipped (8 yeni: türetme birimleri, zincir
+uçtan uca, max-depth, yıkıcı-payload-hiç-koşmaz, remediation DB bütünlüğü)

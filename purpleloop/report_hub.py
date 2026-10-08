@@ -218,6 +218,22 @@ def teknik_detay(findings: list) -> str:
         md.append("")
         md.append(f"> Kanıt: {f.get('kanit', '-')}")
         md.append("")
+        # --- DÜZELTME ÖNERİSİ (v2.5): her bulgu için somut fix ---
+        try:
+            from .remediation import get_remediation
+            rem = get_remediation(f.get("tip", ""), f.get("kanit", ""))
+            md.append("### Düzeltme Önerisi")
+            md.append("")
+            md.append(f"**Risk:** {rem['risk']}")
+            md.append("")
+            md.append("**Adımlar:**")
+            for adim in rem["adimlar"]:
+                md.append(f"1. {adim}")
+            md.append("")
+            md.append(f"**OWASP:** {rem['owasp']} · **Doğrulama:** {rem['dogrulama']}")
+            md.append("")
+        except Exception:
+            pass
     return "\n".join(md)
 
 

@@ -195,7 +195,9 @@ class ProbeProposer:
         # stateless MCP uyumu: oturum sayacını diske de yansıt
         self._last_was_accept = True
         self._persist_session()
-        r = self.tx.http_get(host, port, path)
+        # timeout: yavaş dizin listeleri (~6sn) için 10sn — yoksa
+        # status 200 + BOŞ gövde döner ve kanıt/türetme kaybolur
+        r = self.tx.http_get(host, port, path, timeout=10.0)
         if r is None:
             return {"durum": "KABUL", "kanit": None,
                     "http": None, "sebep": "istek başarısız"}
@@ -213,8 +215,10 @@ class ProbeProposer:
                 fh.write(json.dumps(f, ensure_ascii=False) + "\n")
             self.audit.append("FINDING", tip=f["tip"], hedef=f["hedef"],
                               kaynak="agent_propose")
+        # özet 10k: serve-index listelerinde linkler ~8.7k'dan sonra başlar
+        # (stil blokları uzun); 400/4000 yetmez, 20K zaten kanıt taraması
         return {"durum": "KABUL", "kanit": kanit, "http": status,
-                "sebep": ""}
+                "sebep": "", "govde_ozet": body[:10000]}
 
     def summary(self) -> dict:
         return {"kabul": self._kabul, "red": self._red,
