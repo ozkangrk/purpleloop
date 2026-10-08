@@ -22,10 +22,13 @@ import sys
 from dataclasses import dataclass, asdict
 from typing import Optional, Protocol
 from urllib.parse import urlunsplit
+import threading
 
 from .audit import AuditLog
 from .killswitch import KillSwitch
 from .scope import ScopeContract
+
+_emit_lock = threading.Lock()  # paralel taramada bulgu/deny yazımını serialize eder
 
 # --------------------------------------------------------------------------
 # Sabit kelime listeleri (lab içi; harici CT/DNS servisi kullanılmaz)
@@ -36,15 +39,35 @@ SUBDOMAIN_CANDIDATES = [
     "admin", "portal", "git", "jenkins", "mail",
 ]
 
-PORT_CANDIDATES = [21, 22, 80, 443, 3000, 4443, 5000, 8000, 8080, 8081, 9000, 9010, 9011, 9200, 3306, 5432, 6379]
+PORT_CANDIDATES = [21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 445, 465,
+                   587, 993, 995, 1080, 1433, 1521, 2049, 2375, 2376, 3000, 3128,
+                   3306, 3389, 4443, 5000, 5432, 5672, 5900, 5984, 6379, 6443,
+                   7001, 8000, 8080, 8081, 8443, 8888, 9000, 9001, 9010, 9011,
+                   9200, 9300, 9418, 10000, 11211, 15672, 27017, 50000]
 
 DIR_CANDIDATES = [
     "backup", "backup/", "backup/.env", "backup/.aws-credentials", "backup/secrets-old.txt",
-    ".env", ".git/", "admin", "config", "secrets", "server-status",
+    ".env", ".env.local", ".env.production", ".git/HEAD", ".git/config", ".htaccess",
+    ".htpasswd", ".DS_Store", "admin", "administrator", "api", "assets", "auth",
+    "aws", "bin", "cgi-bin", "composer.json", "config", "config.php", "config.json",
+    "console", "dashboard", "debug", "dev", "docker-compose.yml", "docs", "dump",
+    "etc", "graphql", "health", "home", "id_rsa", "internal", "jenkins", "kernel",
+    "loadbalancer", "login", "logs", "mail", "metrics", "old", "phpinfo.php",
+    "phpmyadmin", "private", "public", "queue", "root", "s3", "secret", "secrets",
+    "server-status", "server-info", "setup", "site", "sql", "ssh", "staging",
+    "swagger", "swagger.json", "temp", "test", "tmp", "token", "upload", "uploads",
+    "var", "vendor", "web", "wp-admin", "wp-config.php", "wsdl",
+    ".aws-credentials", ".aws/config", ".ssh/id_rsa", ".docker/config.json",
+    ".gitlab-ci.yml", "Jenkinsfile", "kibana", "elasticsearch", "solr",
+    "actuator", "actuator/health", "actuator/env", "actuator/heapdump",
+    "trace", "jmx-console", "web-console", "manager/html", "status",
 ]
 
 BUCKET_CANDIDATES = [
     "public", "public-backup", "backups", "backup", "data", "www", "assets", "logs",
+    "media", "static", "files", "documents", "share", "internal", "test", "dev",
+    "staging", "prod", "production", "database", "dumps", "exports", "reports",
+    "user-data", "credentials", "secrets", "config", "deploy", "terraform",
 ]
 
 # --------------------------------------------------------------------------
@@ -54,7 +77,19 @@ BUCKET_CANDIDATES = [
 _SECRET_PATTERNS = [
     ("aws_access_key", re.compile(r"AKIA[0-9A-Z]{16}")),
     ("aws_secret_key", re.compile(r"(?i)aws_secret_access_key\s*[:=]\s*(['\"]?)([A-Za-z0-9/+=-]{12,})\1")),
-    ("private_key", re.compile(r"-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----")),
+    ("private_key", re.compile(r"-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----")),
+    ("jwt", re.compile(r"eyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}")),
+    ("github_token", re.compile(r"gh[pousr]_[A-Za-z0-9]{30,}")),
+    ("slack_token", re.compile(r"xox[bposa]-[A-Za-z0-9-]{10,}")),
+    ("telegram_bot", re.compile(r"\b\d{8,10}:AA[A-Za-z0-9_-]{30,}\b")),
+    ("google_api", re.compile(r"AIza[0-9A-Za-z_-]{35}")),
+    ("stripe_key", re.compile(r"(?i)sk_live_[0-9a-zA-Z]{20,}")),
+    ("sendgrid", re.compile(r"SG\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{40,}")),
+    ("db_url", re.compile(
+        r"(?i)(postgres|postgresql|mysql|mongodb(\+srv)?|redis|amqp)://[^\s\"']+:[^\s\"']+@[^\s\"']+")),
+    ("basic_auth_url", re.compile(r"(?i)https?://[^\s\"'/]+:[^\s\"'/]+@[^\s\"']+")),
+    ("api_key_assignment", re.compile(
+        r"(?im)(?:^|[^A-Za-z0-9])(api[_-]?key|client[_-]?secret|access[_-]?token)\s*[:=]\s*(['\"])([A-Za-z0-9_\-./+=]{20,})\2")),
     ("password_assignment", re.compile(
         r"(?im)(?:^|[^A-Za-z0-9])(password|passwd|pwd|secret|token|root_password)\s*[:=]\s*(['\"]?)(\S{6,})\2")),
 ]
@@ -120,7 +155,7 @@ class RealTransport:
             return False
 
     def http_get(self, host: str, port: int, path: str, timeout: float = 4.0, use_tls: bool = False):
-        """Return (status:int, body:str) or None on connection failure."""
+        """Return (status:int, body:str, headers:dict) or None on failure."""
         try:
             if use_tls:
                 ctx = ssl.create_default_context()
@@ -133,11 +168,41 @@ class RealTransport:
             resp = conn.getresponse()
             body = resp.read(65536).decode("utf-8", errors="replace")
             status = resp.status
-            banner = resp.getheader("Server") or ""
+            headers = {k.lower(): v for k, v in resp.getheaders()}
             conn.close()
-            return status, body, banner
+            return status, body, headers
         except OSError:
             return None
+
+
+# Geriye dönük uyumluluk: eski 3'lü (status, body, banner-str) yerine artık
+# (status, body, headers-dict) dönüyoruz. Test fake'leri banner str döndürür;
+# bunu dict'e normalize eden sarmalayıcı:
+def _norm_resp(r):
+    if r is None:
+        return None
+    status, body, third = r
+    if isinstance(third, str):
+        return (status, body, {"server": third})
+    return (status, body, third)
+
+
+# --------------------------------------------------------------------------
+# HTTP güvenlik başlığı denetimi (yeni bulgu tipi: missing_header)
+# --------------------------------------------------------------------------
+
+_SECURITY_HEADERS = {
+    "strict-transport-security": "HSTS eksik — TLS zorlama yok",
+    "content-security-policy": "CSP eksik — XSS riski",
+    "x-content-type-options": "X-Content-Type-Options eksik — MIME sniffing",
+    "x-frame-options": "X-Frame-Options eksik — clickjacking riski",
+}
+
+
+def audit_security_headers(headers: dict) -> list:
+    """Eksik güvenlik başlıklarını döndürür: [(başlık, açıklama)]."""
+    keys = {k.lower() for k in headers}
+    return [(h, desc) for h, desc in _SECURITY_HEADERS.items() if h not in keys]
 
 
 # --------------------------------------------------------------------------
@@ -157,6 +222,7 @@ class ReconAgent:
         ports: Optional[list] = None,
         dirs: Optional[list] = None,
         buckets: Optional[list] = None,
+        max_workers: int = 32,
     ):
         self.scope = scope
         self.killswitch = killswitch
@@ -167,6 +233,7 @@ class ReconAgent:
         self.port_candidates = ports if ports is not None else PORT_CANDIDATES
         self.dir_candidates = dirs if dirs is not None else DIR_CANDIDATES
         self.bucket_candidates = buckets if buckets is not None else BUCKET_CANDIDATES
+        self.max_workers = max_workers
         self.findings: list = []
         self.denied: list = []   # reddedilen istekler (test izleme + kanıt)
         self._stopped = False
@@ -176,8 +243,9 @@ class ReconAgent:
     def _gate(self, host: str, port: int, method: str = "GET", now=None) -> bool:
         allowed, reason = self.scope.check_request(host=host, port=port, method=method, now=now)
         if not allowed:
-            self.audit.append("SCOPE_DENY", host=host, port=port, method=method, reason=reason)
-            self.denied.append({"host": host, "port": port, "reason": reason})
+            with _emit_lock:
+                self.audit.append("SCOPE_DENY", host=host, port=port, method=method, reason=reason)
+                self.denied.append({"host": host, "port": port, "reason": reason})
             return False
         return True
 
@@ -248,33 +316,69 @@ class ReconAgent:
                 self._emit("subdomain", fqdn, f"resolved to {ip}", self._scope_ref(base))
 
     def stage_ports(self, hosts: list) -> None:
-        """Port taraması: aday portların TAMAMI scope kapısından geçer."""
+        """Port taraması: aday portların TAMAMI scope kapısından geçer.
+        Paralel: iş parçacığı havuzu, kilitli emit + deny kaydı."""
         if self._halt_check("ports"):
             return
+        jobs = []
         for host in hosts:
             for port in self.port_candidates:
-                if not self._gate(host, port, "GET"):
-                    continue
-                if self.tx.tcp_connect(host, port):
-                    self._emit("open_port", f"{host}:{port}", "TCP connect succeeded", self._scope_ref(host))
+                jobs.append((host, port))
+        with _emit_lock:
+            pass  # emit kilidi modül düzeyinde tanımlı
+        self._run_parallel(self._probe_port, jobs)
+
+    def _probe_port(self, host: str, port: int) -> None:
+        if not self._gate(host, port, "GET"):
+            return
+        if self.tx.tcp_connect(host, port):
+            self._emit_safe("open_port", f"{host}:{port}", "TCP connect succeeded", self._scope_ref(host))
+
+    def _run_parallel(self, fn, jobs: list) -> None:
+        if self.max_workers and self.max_workers > 1 and len(jobs) > 8:
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            with ThreadPoolExecutor(max_workers=self.max_workers) as ex:
+                futs = [ex.submit(fn, *j) for j in jobs]
+                for f in as_completed(futs):
+                    exc = f.exception()
+                    if exc:  # tek iş hatası tüm taramayı durdurmaz, loglanır
+                        with _emit_lock:
+                            self.audit.append("PROBE_ERROR", error=str(exc)[:200])
+        else:
+            for j in jobs:
+                if self._stopped:
+                    break
+                fn(*j)
+
+    def _emit_safe(self, tip: str, hedef: str, kanit: str, scope_ref: str) -> None:
+        with _emit_lock:
+            self._emit(tip, hedef, kanit, scope_ref)
 
     def stage_dirs(self, endpoints: list) -> None:
-        """Dizin keşfi: yaygın isim listesi (HTTP GET)."""
+        """Dizin keşfi: yaygın isim listesi (HTTP GET). Paralel + header denetimi."""
         if self._halt_check("dirs"):
             return
+        jobs = []
         for host, port in endpoints:
             for d in self.dir_candidates:
-                if not self._gate(host, port, "GET"):
-                    continue
-                r = self.tx.http_get(host, port, "/" + d)
-                if r is None:
-                    continue
-                status, body, banner = r
-                is_xml = body.lstrip().startswith("<?xml")
-                if status == 200 and not is_xml and ("<html" not in body[:200].lower() or "index of /" in body[:400].lower() or d.endswith((".env", ".aws-credentials", "secrets-old.txt"))):
-                    self._emit("directory", f"{host}:{port}/{d}", f"HTTP {status} len={len(body)}", self._scope_ref(host))
-                for tip, kanit in scan_secrets(body):
-                    self._emit("secret", f"{host}:{port}/{d}", kanit, self._scope_ref(host))
+                jobs.append((host, port, d))
+        self._run_parallel(self._probe_dir, jobs)
+
+    def _probe_dir(self, host: str, port: int, d: str) -> None:
+        if not self._gate(host, port, "GET"):
+            return
+        r = _norm_resp(self.tx.http_get(host, port, "/" + d))
+        if r is None:
+            return
+        status, body, headers = r
+        is_xml = body.lstrip().startswith("<?xml")
+        if status == 200 and not is_xml and ("<html" not in body[:200].lower() or "index of /" in body[:400].lower() or d.endswith((".env", ".aws-credentials", "secrets-old.txt"))):
+            self._emit_safe("directory", f"{host}:{port}/{d}", f"HTTP {status} len={len(body)}", self._scope_ref(host))
+            # güvenlik başlığı denetimi (ilk kez 200 alan yolda bir kez)
+            for h, desc in audit_security_headers(headers):
+                self._emit_safe("missing_header", f"{host}:{port}", f"{h}: {desc}", self._scope_ref(host))
+        for tip, kanit in scan_secrets(body):
+            self._emit_safe("secret", f"{host}:{port}/{d}", kanit, self._scope_ref(host))
 
     def stage_buckets(self, endpoints: list) -> None:
         """S3/bucket keşfi: yaygın bucket adları, anonim erişim testi."""

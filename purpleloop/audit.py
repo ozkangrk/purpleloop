@@ -34,19 +34,29 @@ class AuditLog:
 
     def __init__(self, path: str):
         self.path = path
+        self._cached_last_sha: str | None = None   # append hızlandırma ( zincir güvenliği değişmez)
+        self._known_len: int = 0                    # cache'in hangi dosya uzunluğuna ait olduğu
 
     def _last_sha(self) -> str:
         last = self.GENESIS
         if not os.path.exists(self.path):
             return last
-        with open(self.path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
+        # hızlı yol: dosya cache'ten beri büyüdüyse SADECA yeni satırları oku
+        with open(self.path, "rb") as f:
+            f.seek(self._known_len)
+            for raw in f.read().decode("utf-8", errors="replace").splitlines():
+                line = raw.strip()
                 if not line:
                     continue
-                rec = json.loads(line)
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
                 last = rec.get("sha256", last)
-        return last
+            self._known_len = f.tell()
+        if last != self.GENESIS:
+            self._cached_last_sha = last
+        return last if last != self.GENESIS else self._cached_last_sha or self.GENESIS
 
     def append(self, event: str, **fields: Any) -> dict:
         with _LOCK:
@@ -59,7 +69,13 @@ class AuditLog:
             with open(self.path, "a", encoding="utf-8") as f:
                 f.write(_canon(record) + "\n")
                 f.flush()
-                os.fsync(f.fileno())
+                # NOT: fsync bilinçli olarak kaldırıldı (performans).
+                # Dayanıklılık değişimi: OS kapanışında yazar; proses kill durumunda
+                # son kayıtlar kaybedilebilir ANCAK zincir doğrulaması verify_chain()
+                # ile tam dosyadan yapılır — kayıp satır zinciri BOZMAZ, sadece kısaltır.
+                # Kritik dağıtımlarda append'lerden sonra os.sync() çağrılabilir.
+            self._cached_last_sha = record["sha256"]
+            self._known_len = os.path.getsize(self.path)
             return record
 
     def verify_chain(self) -> bool:

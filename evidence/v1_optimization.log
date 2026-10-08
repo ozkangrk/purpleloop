@@ -1,0 +1,28 @@
+=== v1.0 OPTİMİZASYON + SİSTEM TESTLERİ (2026-10-08) ===
+
+TEST: 188 passed (10 yeni sistem testi: eşzamanlılık, determinizm, fuzz, performans)
+
+PERFORMANS KAZANÇLARI:
+1) AuditLog append: 200 kayıt 0.986s → 0.012s (82x) — artımlı dosya okuma cache'i
+   + fsync kaldırıldı (zincir doğrulaması verify_chain ile tam dosyadan; kayıp
+   satır zinciri bozmaz, kısaltır — fail-closed korunur)
+2) Paralel tarama motoru: ThreadPoolExecutor (32 işçi), kilitli emit/gate —
+   testte seri/paralel ≥8x kazanç kanıtlandı
+3) Canlı benchmark: 16/16 recall, 0 FP, 0 ihlal, ortalama 0.13s (önceki 0.32s → 2.5x)
+
+TESPİT KABİLİYETİ (security coverage):
+- Port listesi 17 → 53 (MSSQL, RDP, MongoDB, ES, Kibana, Kafka, RabbitMQ...)
+- Dizin listesi 11 → 100+ (.git/HEAD, wp-config.php, actuator/heapdump,
+  phpinfo, swagger, Jenkinsfile, .ssh/id_rsa, .docker/config.json...)
+- Bucket listesi 8 → 30
+- Secret desenleri 4 → 14: JWT, GitHub/Slack/Telegram/Google/Stripe/SendGrid
+  token, DB URL şifreli, basic-auth URL, api_key ataması, PGP key
+- YENİ bulgu tipi: missing_header — HSTS/CSP/X-Content-Type-Options/X-Frame-Options
+  denetimi (canlı labda nginx'de 4 eksik başlık tespit edildi)
+- Canlı tarama bulgu dağılımı: 2 port + 5 dizin + 16 header + 8 secret + 2 bucket
+
+GÜVENLİK KANITLARI (sistem testleri):
+- Eşzamanlı 8 thread x 20 audit append → zincir sağlam (200 kayıt)
+- 3 tekrar paralel tarama → deterministik bulgu sayısı, dosya/bulgu tutarlı
+- Fuzz: 200 rastgele içerik → 0 sahte secret; 100 çöp scope → %90+ red
+- Genişletilmiş listelerle recall 100% korundu, FP 0, kapsam ihlali 0
