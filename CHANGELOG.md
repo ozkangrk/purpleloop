@@ -4,6 +4,21 @@ Tüm önemli değişiklikler bu dosyada belgelenir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) uyumlu;
 sürümleme [SemVer](https://semver.org/lang/tr/) ile yapılır.
 
+## [2.0.0] - 2026-10-08
+### Added
+- **Nuclei backend** (`purpleloop.nucleus`): 13.8k şablonlu tarayıcı çift
+  scope kapısı arkasında (hedef listesi önceden onaylı + her bulgu tekrar
+  doğrulanır; kapsam dışı bulgu NUCLEI_SCOPE_DROP). Finding şemasına
+  `nuclei_<severity>` tipli çevirim.
+- **White-hat sızma katmanı** (`purpleloop.pentest`): GET-only kimlik aşımı
+  denemeleri — auth_anonymous_session, auth_bypass (SPA-fallback FP filtreli),
+  path_traversal (passwd imza kanıtı şart), default_login_surface.
+- Canlı çapraz kanıt: bilinçli zayıf uygulamada 3 gerçek sızma bulgusu
+  (admin bypass + /etc/passwd okuma); sağlam Juice Shop'ta 0 bulgu 0 FP.
+- 10 yeni test → 291 passed.
+
+## [1.9.1] - 2026-10-08
+
 ## [1.6.0] - 2026-10-08
 ### Added
 - Platform katmanı (`purpleloop.platform_layer`): SARIF 2.1.0 export
