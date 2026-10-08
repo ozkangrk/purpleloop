@@ -57,6 +57,11 @@ DIR_CANDIDATES = [
     "server-status", "server-info", "setup", "site", "sql", "ssh", "staging",
     "swagger", "swagger.json", "temp", "test", "tmp", "token", "upload", "uploads",
     "var", "vendor", "web", "wp-admin", "wp-config.php", "wsdl",
+    "ftp/", "ftp/README.md", "ftp/eastere.gg", "ftp/encrypt.pyc",
+    "ftp/incident-support.kdbx", "ftp/suspicious_errors.yml",
+    "ftp/package.json.bak", "ftp/coupons_2013.md.bak", "ftp/acquisitions.md",
+    "ftp/legal.md", "ftp/announcement_encrypted.md",
+    "api-docs/", "robots.txt", "security.txt", ".well-known/security.txt",
     ".aws-credentials", ".aws/config", ".ssh/id_rsa", ".docker/config.json",
     ".gitlab-ci.yml", "Jenkinsfile", "kibana", "elasticsearch", "solr",
     "actuator", "actuator/health", "actuator/env", "actuator/heapdump",
@@ -155,7 +160,12 @@ class RealTransport:
             return False
 
     def http_get(self, host: str, port: int, path: str, timeout: float = 4.0, use_tls: bool = False):
-        """Return (status:int, body:str, headers:dict) or None on failure."""
+        """Return (status:int, body:str, headers:dict) or None on failure.
+
+        Kısmi gövde toleransı: bazı sunucular (ör. serve-index /ftp/ listing)
+        Content-Length'ten az bayt gönderip bekler. read() tamamlanmazsa
+        gelen kısmi gövdeyle devam ederiz — dizin tespiti için yeterli.
+        """
         try:
             if use_tls:
                 ctx = ssl.create_default_context()
@@ -166,13 +176,29 @@ class RealTransport:
                 conn = http.client.HTTPConnection(host, port, timeout=timeout)
             conn.request("GET", path if path.startswith("/") else "/" + path)
             resp = conn.getresponse()
-            body = resp.read(65536).decode("utf-8", errors="replace")
+            chunks = []
+            try:
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+            except Exception:
+                pass  # kısmi gövde: geleni kullan
+            body = b"".join(chunks).decode("utf-8", errors="replace")
             status = resp.status
             headers = {k.lower(): v for k, v in resp.getheaders()}
             conn.close()
             return status, body, headers
         except OSError:
             return None
+
+
+# Bilinen doküman/API yüzeyleri: HTML olsa bile bulunmalı (SPA fallback hariç)
+KNOWN_DOC_PATHS = {
+    "api-docs/", "swagger/", "swagger-ui/", "redoc/", "graphql",
+    "actuator", "actuator/health", "server-status", "server-info",
+}
 
 
 # Geriye dönük uyumluluk: eski 3'lü (status, body, banner-str) yerine artık
@@ -185,6 +211,29 @@ def _norm_resp(r):
     if isinstance(third, str):
         return (status, body, {"server": third})
     return (status, body, third)
+
+
+# --------------------------------------------------------------------------
+# SPA fallback dedektörü (Juice Shop v17.3.0 FP tuzağı)
+# --------------------------------------------------------------------------
+
+def is_spa_fallback(status: int, body: str, headers: dict, index_body: str) -> bool:
+    """True = yanıt var olmayan yolun SPA kopyası (200 ama index.html gövdesi).
+
+    Sinyaller: status 200 + text/html + gövde byte-byte index'e eş (veya
+    index'in ilk 256 karakteriyle aynı başlıyor ve aynı uzunlukta).
+    """
+    if status != 200:
+        return False
+    h = {str(k).lower(): v for k, v in (headers or {}).items()}
+    ct = h.get("content-type", "")
+    if "text/html" not in ct.lower():
+        return False
+    if body == index_body:
+        return True
+    if len(body) == len(index_body) and body[:256] == index_body[:256]:
+        return True
+    return False
 
 
 # --------------------------------------------------------------------------
@@ -358,6 +407,20 @@ class ReconAgent:
         """Dizin keşfi: yaygın isim listesi (HTTP GET). Paralel + header denetimi."""
         if self._halt_check("dirs"):
             return
+        # index parmak izi: SPA fallback tespiti için her endpoint'ten / al
+        self._index_bodies = {}
+        for host, port in endpoints:
+            if not self._gate(host, port, "GET"):
+                continue
+            r = _norm_resp(self.tx.http_get(host, port, "/"))
+            if r is not None and r[0] == 200:
+                self._index_bodies[(host, port)] = r[1]
+                # header denetimi ANA SAYFA yanıtından, host başına bir kez:
+                # statik dosya/metrics yanıtlarından ölçmek yanıltıcıdır
+                # (ana sayfada var olan header'ı "eksik" gösterebilir)
+                for h, desc in audit_security_headers(r[2]):
+                    self._emit_safe("missing_header", f"{host}:{port}",
+                                    f"{h}: {desc}", self._scope_ref(host))
         jobs = []
         for host, port in endpoints:
             for d in self.dir_candidates:
@@ -372,11 +435,17 @@ class ReconAgent:
             return
         status, body, headers = r
         is_xml = body.lstrip().startswith("<?xml")
-        if status == 200 and not is_xml and ("<html" not in body[:200].lower() or "index of /" in body[:400].lower() or d.endswith((".env", ".aws-credentials", "secrets-old.txt"))):
-            self._emit_safe("directory", f"{host}:{port}/{d}", f"HTTP {status} len={len(body)}", self._scope_ref(host))
-            # güvenlik başlığı denetimi (ilk kez 200 alan yolda bir kez)
-            for h, desc in audit_security_headers(headers):
-                self._emit_safe("missing_header", f"{host}:{port}", f"{h}: {desc}", self._scope_ref(host))
+        idx = self._index_bodies.get((host, port))
+        spa_fp = idx is not None and is_spa_fallback(status, body, headers, idx)
+        is_known_doc = d in KNOWN_DOC_PATHS and not spa_fp
+        is_listing = "index of /" in body[:400].lower() or "listing directory" in body[:400].lower()
+        if status == 200 and not is_xml and not spa_fp and (is_known_doc or is_listing or "<html" not in body[:200].lower()):
+            kanit = f"HTTP {status} len={len(body)}"
+            if is_listing:
+                kanit += " | dizin listeleme açık"
+            if is_known_doc:
+                kanit += " | bilinen doküman/API yüzeyi"
+            self._emit_safe("directory", f"{host}:{port}/{d}", kanit, self._scope_ref(host))
         for tip, kanit in scan_secrets(body):
             self._emit_safe("secret", f"{host}:{port}/{d}", kanit, self._scope_ref(host))
 

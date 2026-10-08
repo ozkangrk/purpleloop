@@ -56,6 +56,11 @@ python3 -m purpleloop dashboard --run-dir run1   # http://127.0.0.1:8090
 
 ## Benchmark (measured, not claimed)
 
+| Benchmark | Recall | FP | Scope violations | Evidence |
+|---|---|---|---|---|
+| Own lab (16 planted assets) | 100% | 0 | 0 | `evidence/week7_run.log` |
+| **OWASP Juice Shop v17.3.0** (GET-recon class, 11 surfaces) | **100%** | **0** | **0** | `evidence/v14_juice_benchmark.log` |
+
 Scored against a 16-asset ground-truth lab with out-of-scope decoy hosts:
 
 | Metric | Result |

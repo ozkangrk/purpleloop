@@ -4,6 +4,20 @@ Tüm önemli değişiklikler bu dosyada belgelenir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) uyumlu;
 sürümleme [SemVer](https://semver.org/lang/tr/) ile yapılır.
 
+## [1.4.0] - 2026-10-08
+### Added
+- OWASP Juice Shop v17.3.0 benchmark: GET-recon sınıfında %100 recall, 0 FP,
+  0 kapsam ihlali (`evidence/v14_juice_benchmark.log`).
+### Fixed (Juice Shop'ta bulunan kök nedenler)
+- SPA fallback FP: var olmayan yollara 200 + index gövdesi → `is_spa_fallback()`
+  parmak izi filtresi (taban çizgisinde 5 FP vardı → 0).
+- `/ftp/` listing'i kaçırma: sunucu Content-Length'ten az gönderip bekliyor;
+  RealTransport artık kısmi gövdeyle devam ediyor.
+- Header denetimi statik yanıtlardan okuyup VAR olan XFO/XCTO'yu "eksik"
+  diyordu; artık ana sayfa yanıtından, host başına tekil.
+- Wordlist: OWASP yüzeyleri (ftp/, api-docs/, security.txt, swagger.json) +
+  KNOWN_DOC_PATHS (HTML dönen gerçek doküman yüzeyleri).
+
 ## [1.3.0] - 2026-10-08
 ### Added
 - MCP server (`purpleloop mcp` / `python3 -m purpleloop.mcp_server`): AI

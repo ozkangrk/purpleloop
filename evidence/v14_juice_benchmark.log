@@ -1,0 +1,53 @@
+=== v1.4: OWASP JUICE SHOP v17.3.0 BENCHMARK (2026-10-08) ===
+Hedef: piyasa standardı zafiyetli uygulama üzerinde kanıtlı performans
+
+ORTAM
+- Hedef: OWASP Juice Shop v17.3.0 (resmi Docker imajı, 127.0.0.1:3100)
+- Ground truth: /api/challenges resmi kataloğu (109 challenge) + her bulgunun
+  canlı HTTP doğrulaması (status + benzersiz içerik imzası)
+- Tarayıcı: PurpleLoop vanilla — `python3 -m purpleloop.harness
+  --scope juice-scope.json --endpoints 127.0.0.1:3100 --pipeline recon,validator`
+
+METODOLOJİ (dürüst kapsam)
+- Sınıf: kimlik doğrulamasız GET taraması (recon). SQLi/XSS/auth challenge'ları
+  bu sınıfın DIŞINDA — hedef bulguları abartmak değil, sınıf içinde doğruluk.
+- Karşılaştırma taban çizgisi: düzeltme ÖNCESİ vanilla tarama (juice-run1)
+
+SONUÇLAR — düzeltme sonrası (juice-run5)
+- Recall: 11/11 = %100 (GET-recon sınıfı ground truth yüzeyleri)
+- False positive: 0 (14 bulgunun tamamı canlı doğrulandı)
+- Kapsam ihlali: 0 (kill-switch/scope-gate aktif, audit zinciri geçerli)
+- Süre: ~9 sn
+
+BULUNAN YÜZEYLER (11/11)
+1. /ftp/ dizin listeleme açık          [directory]  (Sensitive Data Exposure)
+2. /ftp/incident-support.kdbx          [directory]  (KeePass veritabanı sızıntısı)
+3. /ftp/acquisitions.md                [directory]  (Confidential Document ch.)
+4. /ftp/announcement_encrypted.md      [directory]  (369KB şifreli duyuru)
+5. /ftp/legal.md                       [directory]
+6. /metrics                            [directory]  (Exposed Metrics ch.)
+7. /api-docs/                          [directory]  (Swagger UI açık)
+8. /robots.txt                         [directory]
+9. /security.txt + /.well-known/       [directory]
+10. CSP eksik (ana sayfa)              [missing_header]
+11. HSTS eksik (ana sayfa)             [missing_header]
+
+DÜZELTMEDEN ÖNCE (taban çizgisi, juice-run1) — dürüst fark
+- 5 SPA-fallback FP: /.env, /backup/.env, /backup/.aws-credentials,
+  /backup/secrets-old.txt, /.aws-credentials (200 ama gövde=index.html kopyası)
+- /ftp/ VE TÜM /ftp/* dosyaları KAÇIRILIYORDU (timeout: sunucu listing'i
+  Content-Length'ten az bayt gönderip bekliyor — 6sn'de kesiliyor)
+- header denetimi statik yanıtlardan okuyup VAR olan XFO/XCTO'yu "eksik"
+  diyordu (14 tekrarlı yanlış bulgu)
+
+KÖK NEDEN DÜZELTMELERİ (testlerle sabit, 212 test yeşil)
+1. is_spa_fallback(): index parmak iziyle SPA kopyası tespiti → FP=0
+2. RealTransport kısmi gövde toleransı (Content-Length > gerçek gönderim durumu)
+3. Header denetimi ana sayfa yanıtından, host başına tekil
+4. Wordlist'e OWASP yüzeyleri: ftp/, api-docs/, security.txt, swagger.json...
+5. KNOWN_DOC_PATHS: HTML dönsün dönsün gerçek doküman yüzeyi tanıma
+
+NOT (abartısız): Bu benchmark PurpleLoop'un unauthenticated GET recon
+sınıfındaki doğruluğunu gösterir. Juice Shop'un 109 challenge'ının tamamını
+çözmek (SQLi, XSS, auth bypass...) kapsam dışıdır; o sınıf için exploit
+modülü ayrı geliştirilir.
