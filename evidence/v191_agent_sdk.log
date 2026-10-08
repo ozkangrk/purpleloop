@@ -1,0 +1,28 @@
+=== v1.9.1: BAĞIMSIZ AJAN KANITI + SDK DÜZELTMELERİ (2026-10-08) ===
+
+1) MCP İSTEMCİ SDK (purpleloop/mcp_client.py — YENİ)
+- PurpleLoopClient: stateless stdio bağlantı; tools/status/scope_check/
+  scan/campaign/gate/killswitch/audit sarmalayıcıları
+- Tasarım dersi: anyio loop'u çağrılar arasında taşınamaz → her çağrı
+  kendi bağlantısını açar (~yüz ms); env beyaz listesi nedeniyle TAM
+  sys.path PYTHONPATH'e taşınır (yoksa alt süreç 'No module named anyio')
+- 4 test (gerçek protokol el sıkışması + canlı lab taraması)
+
+2) BAĞIMSIZ AJAN OPERASYONU (deleg_6042fbc7, glm-5.3, 130sn)
+Ajan YALNIZCA SDK kullandı (doğrudan modül/HTTP yasak):
+- kapsam: 127.0.0.1:3100 izinli; 203.0.113.99:80 REDDEDİLDİ (fail-closed kanıtı)
+- scan: 17 bulgu (sqli_data_leak 21 email, error_disclosure, null-byte bypass...)
+- campaign: 3 adım, otonom; audit zinciri geçerli (180 kayıt)
+- rapor: /tmp/pl-agent-run/AGENT-REPORT.md
+
+3) EBEVEYN DOĞRULAMASI 2 GERÇEK HATA BULDU (ajanın PASS'i yanıltıcıydı)
+- HATA A: kampanya çıktısı GÖRELİ 'campaign-run' yolundaydı → SDK istemcisinin
+  cwd'sine gidiyordu; ajan bulgularını bulamadı, olmayan dizini sorguladı,
+  boş liste → sahte PASS. DÜZELTME: campaign_out = out_dir/campaign (mutlak,
+  keşfedilebilir).
+- HATA B: gate aracı olmayan dizinde sessizce PASS döndürüyordu.
+  DÜZELTME: bulgu_dosyasi_yok=true işareti — ajan artık yanlış yolu görür.
+- Doğrulama (taze süreç): gate(dogru dizin)=FAIL error=1 sqli (gerçek karar);
+  gate(olmayan dizin)=PASS + bulgu_dosyasi_yok=True (dürüst işaret)
+
+TESTLER: 281 passed + 2 skipped (lab kapalıysa) — canlı lab testi dahil

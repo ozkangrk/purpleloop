@@ -250,7 +250,9 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None,
 
     # ---- v1.9: campaign + gate (yalnız EKLEME; mevcut araçlara dokunmaz) ----
 
-    campaign_out = campaign_out_dir or "campaign-run"
+    # Kampanya çıktısı HER ZAMAN out_dir içinde: görece yol SDK istemcisinin
+    # cwd'sine dağılırdı (ajan bulgularını bulamıyordu). Mutlak ve keşfedilebilir.
+    campaign_out = campaign_out_dir or os.path.join(out_dir, "campaign")
 
     def _campaign(hosts, endpoints=None, max_steps: int = 10) -> str:
         """Otonom kampanya: CampaignOrchestrator'ı koşturup özet döner.
@@ -308,12 +310,16 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None,
     def _gate(out_dir: str, max_error: int = 0, max_warning: int = 10) -> str:
         """out_dir bulgularını PolicyGate eşiklerine vurur (PASS/FAIL).
 
-        findings.jsonl + active-findings.jsonl birlikte okunur; dosya yoksa
-        boş bulgu listesiyle değerlendirme yapılır (durum PASS).
+        findings.jsonl + active-findings.jsonl + campaign-*.jsonl birlikte
+        okunur. DİRÜSTLÜK KURALI: dizin yoksa veya hiç bulgu dosyası yoksa
+        boş PASS döndürmek yanıltıcıdır — 'bulgu_dosyasi_yok: true' işareti
+        ile döner (ajan yanlış yolu sorguladığında bunu görür).
         """
         from .platform_layer import PolicyGate
+        import glob as _glob
 
         findings = _read_findings(out_dir)
+        dosya_var = bool(_glob.glob(os.path.join(out_dir, "*.jsonl")))
         karar = PolicyGate(max_error=max_error,
                            max_warning=max_warning).evaluate(findings)
         return _j({
@@ -322,6 +328,7 @@ def build_server(scope, audit, killswitch, out_dir, transport_factory=None,
             "warning": karar["warning"],
             "esik": karar["esik"],
             "bulgu_sayisi": len(findings),
+            "bulgu_dosyasi_yok": not dosya_var,
             "out_dir": out_dir,
         })
 
