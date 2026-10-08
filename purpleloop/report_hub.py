@@ -222,6 +222,109 @@ def teknik_detay(findings: list) -> str:
 
 
 # ---------------------------------------------------------------------------
+# 4) Kapak raporu — security tool seviyesi (bounty kanıtlı executive rapor)
+# ---------------------------------------------------------------------------
+
+def executive_summary(findings: list, bounty_sonuc: Optional[dict]) -> str:
+    """Kapak raporu markdown: 3 satırlık risk cümlesi + çözülen bounty tablosu
+    (seviye/puan) + kalan riskler + önerilen aksiyonlar.
+
+    bounty_sonuc: BountyHarness.run() çıktısı ({'cozulen', 'solved', 'odul_toplami', ...}).
+    None ise bounty kanıtı olmayan sade kapak üretilir.
+    """
+    bs = bounty_sonuc or {}
+    solved = bs.get("solved", []) or []
+    cozulen = bs.get("cozulen", len(solved))
+    odul = bs.get("odul_toplami",
+                  sum(int(s.get("puan", 0)) for s in solved))
+    halted = bool(bs.get("halted"))
+
+    error = sum(1 for f in findings if _seviye(f) == "error")
+    warning = sum(1 for f in findings if _seviye(f) == "warning")
+
+    md = ["# Kapak Raporu — PurpleLoop Security Tool", ""]
+
+    # --- 3 satırlık risk cümlesi ---
+    md.append("## Risk Özeti (3 cümle)")
+    md.append("")
+    if halted:
+        md.append(f"1. Bounty koşusu kill-switch ile DURDURULDU; {len(findings)} bulgu "
+                  f"({error} error / {warning} warning) mevcut durumda değerlendirildi.")
+    elif solved:
+        md.append(f"1. Yetkili sızma kampanyasında hedefin kendi skorboardu "
+                  f"{cozulen} challenge'ı ÇÖZÜLMÜŞ olarak doğruladı "
+                  f"(toplam ödül: {odul} puan).")
+    else:
+        md.append(f"1. Bounty kanıtı yok: sunucu skorboardu bu koşuda çözülmüş "
+                  f"challenge onaylamadı.")
+    md.append(f"2. Belirlenen bulgu yükü: {len(findings)} bulgu — "
+              f"{error} error, {warning} warning, "
+              f"{len(findings) - error - warning} bilgi seviyesi.")
+    if error:
+        md.append("3. Kritik seviyede doğrulanmış zafiyetler mevcut; düzeltme "
+                  "tamamlanana kadar saldırı yüzeyi aktif risk taşır.")
+    else:
+        md.append("3. Error seviyesinde bulgu yok; kalan riskler warning/bilgi "
+                  "seviyesinde ve planlı hardening ile kapatılabilir.")
+    md.append("")
+
+    # --- Çözülen bounty'ler tablosu ---
+    md.append("## Çözülen Bounty'ler (skorboard doğrulamalı)")
+    md.append("")
+    if solved:
+        md.append("| Challenge | Zorluk | Seviye | Puan |")
+        md.append("|-----------|--------|--------|------|")
+        for s in sorted(solved, key=lambda x: -int(x.get("puan", 0))):
+            md.append(f"| {_md_escape(s.get('ad', s.get('key', '-')))} | "
+                      f"{s.get('zorluk', '-')} | {s.get('seviye', '-')} | "
+                      f"{s.get('puan', 0)} |")
+        md.append("")
+        md.append(f"**Toplam:** {cozulen} challenge çözüldü, **{odul} puan** ödül "
+                  f"(doğrulayıcı: hedef uygulamanın `/api/challenges` 'solved' alanı).")
+    else:
+        md.append("_Bu koşuda skorboard doğrulamalı çözülmüş challenge yok._")
+    md.append("")
+
+    # --- Kalan riskler ---
+    md.append("## Kalan Riskler")
+    md.append("")
+    kalan = []
+    if error:
+        kalan.append(f"{error} error seviyesinde bulgu açık (kritik saldırı yüzeyi).")
+    if warning:
+        kalan.append(f"{warning} warning seviyesinde bulgu henüz kapatılmadı.")
+    cozulmemis = bs.get("cozulmemis")
+    if cozulmemis:
+        kalan.append(f"{cozulmemis} challenge hâlâ çözülmedi (tam kapsam kanıtı eksik).")
+    if halted:
+        kalan.append("Bounty koşusu kill-switch ile yarım kaldı — tekrar koşulmalı.")
+    if not kalan:
+        kalan.append("Bilinen açık risk yükü eşik içinde; rutin izleme yeterli.")
+    for k in kalan:
+        md.append(f"- {k}")
+    md.append("")
+
+    # --- Önerilen aksiyonlar ---
+    md.append("## Önerilen Aksiyonlar")
+    md.append("")
+    aksiyonlar = []
+    if error:
+        aksiyonlar.append("Error bulguları için acil düzeltme görevi aç ve `validate` ile yeniden doğrula.")
+    if warning:
+        aksiyonlar.append("Warning bulgularını bir sonraki hardening sprint'ine al.")
+    if solved and bs.get("yeni"):
+        aksiyonlar.append(f"Yeni çözülen {len(bs['yeni'])} challenge'ı kanıt zincirine bağla ve raporla.")
+    if halted:
+        aksiyonlar.append("Kill-switch sebebini incele, temizle ve bounty koşusunu tekrarla.")
+    if not aksiyonlar:
+        aksiyonlar.append("Rutin izleme (monitor) ile devam et; düzenli yeniden tarama planla.")
+    for a in aksiyonlar:
+        md.append(f"- [ ] {a}")
+    md.append("")
+    return "\n".join(md)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -237,6 +340,8 @@ def main(argv: Optional[list] = None) -> int:
     ap.add_argument("--roller", default="yonetici,denetci,teknik",
                     help="virgülle ayrılmış roller: yonetici,denetci,teknik")
     ap.add_argument("--scope", default="scope.json", help="kapsam sözleşmesi JSON yolu")
+    ap.add_argument("--bounty", default="",
+                    help="bounty koşu sonucu JSON dosyası (BountyHarness.run() çıktısı) — kapak raporu için")
     args = ap.parse_args(argv)
 
     roller = [r.strip() for r in args.roller.split(",") if r.strip()]
@@ -269,6 +374,22 @@ def main(argv: Optional[list] = None) -> int:
         p = os.path.join(args.out_dir, "rapor_teknik.md")
         with open(p, "w", encoding="utf-8") as f:
             f.write(teknik_detay(findings))
+        yazilan.append(p)
+
+    # kapak raporu: --bounty verilmişse bounty sonucuyla, yoksa sade kapak
+    if args.bounty:
+        bounty_sonuc = None
+        if os.path.exists(args.bounty):
+            try:
+                with open(args.bounty, "r", encoding="utf-8") as f:
+                    bounty_sonuc = json.load(f)
+            except json.JSONDecodeError as e:
+                ap.error(f"--bounty dosyası geçerli JSON değil: {e}")
+        else:
+            ap.error(f"--bounty dosyası bulunamadı: {args.bounty}")
+        p = os.path.join(args.out_dir, "rapor_kapak.md")
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(executive_summary(findings, bounty_sonuc))
         yazilan.append(p)
 
     for p in yazilan:

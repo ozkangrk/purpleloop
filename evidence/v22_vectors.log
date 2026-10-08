@@ -1,0 +1,28 @@
+=== v2.2: VEKTÖR KÜTÜPHANESİ + KAPAK RAPORU + SÜREKLİ SIZMA İZLEME (2026-10-08) ===
+
+1) SIZMA VEKTÖR KÜTÜPHANESİ (purpleloop/vectors.py — subagent + ebeveyn düzeltmesi)
+- 6 vektör sınıfı: IDOR, JWT alg:none, XSS yansıması, XXE imzası,
+  open redirect, HTTP method istismarı
+- Her vektör FP-KAPILI: kanıt_fonksiyonu imzası şart (200 yetmez);
+  scope kapısı + kill-switch + audit her vektörde
+- EBEVEYN DÜZELTMESİ: çocuğun kodu FakeTransport'ta geçiyor ama gerçek
+  http.client'te patlıyordu (XXE payload'ında kodlanmamış boşluk →
+  InvalidURL). quote() ile URL kodlama eklendi — canlıda 0 hata.
+- ÇAPRAZ KANIT: zayıf app'te 3 bulgu (IDOR: victim@corp.example kart no
+  dahil; XSS yansıması aynen; open redirect 302+Location) — sağlam
+  Juice Shop'ta 0 bulgu (FP kapıları doğru sessizlik)
+
+2) KAPAK RAPORU (report_hub.py — executive_summary, additive)
+- 3 cümlelik risk özeti + skorboard-doğrulamalı bounty tablosu +
+  kalan riskler + aksiyonlar; --bounty ile rapor_kapak.md üretilir
+- Canlı kanıt: 7 challenge/6700p tablosu + vektör bulgularıyla üretildi
+
+3) README (security tool seviyesi): 'Bounty & Exploitation' bölümü,
+   recon→pentest→bounty→report sızma zinciri, 297+ test evidence
+
+4) SÜREKLİ İZLEME güncellendi: watchdog turu 7 bölüm — bounty
+   (skorboard durumu) + pentest her 6 saatte koşuyor; qwen-tensorfold
+   kapalıysa bilgi notu (bilinçli kapatma), yanlış alarm yok
+   Canlı tur: exit 0, bounty 7600p durum, pentest 0 bulgu (temiz)
+
+TESTLER: 322 passed + 2 skipped (25 yeni vektör testi)

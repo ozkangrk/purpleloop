@@ -53,6 +53,7 @@ python3 -m purpleloop dashboard --run-dir run1   # http://127.0.0.1:8090
 | `purpleloop bench` | Lab benchmark: recall / FP / scope violations |
 | `purpleloop dashboard` | Live web dashboard (stdlib-only) |
 | `purpleloop mcp` | MCP server (stdio) — AI agents get scope-gated tools |
+| `purpleloop report_hub --bounty F.json` | Executive cover report: bounty scoreboard evidence + risk summary |
 
 ## Benchmark (measured, not claimed)
 
@@ -72,12 +73,53 @@ Scored against a 16-asset ground-truth lab with out-of-scope decoy hosts:
 
 Reproduce: `python3 -m purpleloop.bench --scope scope.json --out bench.json`
 
+## Bounty & Exploitation
+
+PurpleLoop's bounty harness **proves exploitation with the target's own
+scoreboard**, not with the agent's word: the agent only *attempts* GET-only
+vectors; a solve counts **only if the target application itself records it**
+(`/api/challenges` → `solved: true`). False positives are structurally
+near-impossible — the verifier is the server, never the agent.
+
+**Mechanic (attempt → server verify → reward):**
+
+1. Fetch challenge catalog (`/api/challenges`), snapshot `solved` set.
+2. Fire GET-only exploitation vectors (each one passes the scope gate;
+   content-signature checks where 200 alone is not proof).
+3. Re-fetch the scoreboard — `solved_after − solved_before` = newly solved,
+   each mapped CTF-difficulty → severity → bounty points
+   (low 100 / medium 400 / high 900 / critical 2000).
+
+**Live proof — OWASP Juice Shop, 6 challenges solved in one run**
+(scoreboard-verified, chain-logged in `evidence/`):
+
+| Vector category | Example vector | Target challenge class |
+|---|---|---|
+| Hidden surface discovery | `/score-board`, `/metrics` | scoreBoard, metrics |
+| Sensitive file exposure | `/ftp/`, `/ftp/acquisitions.md` | confidentialDocument |
+| SQL injection (UNION) | `/rest/products/search?q=')) union select …` | dbSchema, userCredentials |
+| Filter bypass (Poison Null Byte) | `/ftp/package.json.bak%2500.md` | nullByte |
+| Easter egg / backup exposure | `/ftp/eastere.gg` | easterEgg |
+
+Cover report: `python3 -m purpleloop.report_hub --findings run.jsonl \
+--bounty bounty-result.json --out-dir rapor/` → `rapor_kapak.md`
+(3-sentence risk summary, solved-bounty table with severity/points,
+remaining risks, recommended actions).
+
 ## Architecture
 
 ```
 scope gate → recon → validator → safe-mode exploit → attack paths → compliance report
+      └──────────── pentest (active, read-only proofs) ────────────────┘
+                          └──→ bounty (scoreboard-verified solves) ──┘
+                                      └──→ report_hub → executive cover report
 └──────────────── SHA256 hash-chained audit log (every step) ────────────────┘
 ```
+
+Penetration chain: **recon → pentest → bounty → report** — recon discovers
+the surface, pentest proves vulnerabilities safely, bounty converts proven
+exploits into server-verified scores, report_hub rolls everything into
+executive/auditor/technical reports.
 
 PurpleLoop is a **security harness**: agents (recon, validator, report, 3rd-party
 plugins) are replaceable parts; the control plane (scope gate, audit chain,
@@ -109,7 +151,7 @@ or change verdicts. Third-party agents get network access exclusively through
 
 ## Test evidence
 
-- **207 tests green** (`python3 -m pytest -q`)
+- **297+ tests green** (`python3 -m pytest -q`)
 - Week-by-week run logs: `evidence/first_run.log`, `evidence/week2..8_run.log`
 - Benchmark: `evidence/bench-result.json` — 100% recall / 0 FP / 0 violations
 - Continuous monitoring: `evidence/monitoring.jsonl` + 5 critical alerts
