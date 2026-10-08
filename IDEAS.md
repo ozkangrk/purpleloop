@@ -8,16 +8,17 @@
 ## P0 — Devam eden
 - [x] Hafta 1-4 çekirdek: scope + audit zinciri + kill-switch + recon +
       validator + harness (131 test yeşil, canlı lab kanıtlı)
-- [ ] Hafta-5: safe-mode exploit doğrulama (detay: ROADMAP.md)
+- [x] Hafta-5: safe-mode exploit doğrulama (exploit.py)
+- [x] P2/7 yükseltildi → P0: PurpleLoop MCP server — AI agent'lara
+      scope-gated tarama (v1.3 hedefi)
 
 ## P1 — Ürünleşme (detay: ROADMAP.md)
-1. Saldırı yolu grafiği: bulguları birleştirip zincir kanıtı
-   ("sızan parola → bucket erişimi → yetki yükseltme")
-2. Türkçe uyumluluk raporu: findings → KVKK / ISO 27001 / SOC 2 şablonu
-3. GOAD benchmark: bulunma/kaçırma/scope-ihlali metrikleriyle tablo
-4. LLM danışman entegrasyonu (Gemini API veya DGX'te lokal vLLM):
-   triage + rapor özetleme — verdict'e etkisi YOK
-5. `pip install purpleloop` + herkese açık GitHub repo + doküman seti
+1. [x] Saldırı yolu grafiği: chainreact.py AttackPathBuilder (week6)
+2. [x] Türkçe uyumluluk raporu: KVKK / ISO 27001 / SOC 2 (chainreact.py B)
+3. [ ] GOAD benchmark: bulunma/kaçırma/scope-ihlali metrikleriyle tablo
+4. [x] LLM danışman entegrasyonu: Jev karar katmanı v1.1 + gerçek Jev API v1.2
+   (verdict yetkisi yok — danışman kalıyor)
+5. [ ] `pip install purpleloop` — kod hazır; kullanıcı PyPI token'ı bekleniyor
 
 ## P2 — Backlog
 6. FP-sınıflandırıcı mini model: validator etiketleriyle beslenen küçük

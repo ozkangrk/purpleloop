@@ -1,0 +1,731 @@
+[
+  {
+    "benchmark": "seceval",
+    "details": [
+      {
+        "gold": "B",
+        "id": "282cd7f6-86f9-4174-95c2-df26b2b6395e",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "28355cb5-4b9a-44b8-8419-38fd17d335e4",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "27ea6d4b-b7f6-4370-8877-ba80887727ff",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "7a1db287-9f9b-4621-ba2c-9667a765bbab",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "a9c613bb-2b24-4a04-8bf5-fdabf6724322",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "b4a451ca-16d2-4ab7-ba99-6bc146ea5b86",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "f4274a51-8a0e-47a8-b472-115c3fe85924",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "780100a0-98da-49fc-9acb-476ab4edf3a9",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "61dfb73d-1f20-4d58-b491-747e21cf66bb",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "37c5e212-2d90-4a25-ab6e-e454daba4db3",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "d02c0cdd-0b29-45c1-9a22-db3f518339ef",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "C",
+        "id": "eca9c056-32d5-466d-a94c-c144a8d959a2",
+        "ok": false,
+        "pred": "D"
+      },
+      {
+        "gold": "B",
+        "id": "657f1246-4867-434b-a538-1b160b916803",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "cc9574c6-5d6e-4814-aeee-fd257d7b85e4",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "1c26e147-59bf-4fda-af21-f51bd064cf1c",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "8b8b51f3-e3ba-4d6a-8f18-6fe28acf8e45",
+        "ok": false,
+        "pred": "D"
+      },
+      {
+        "gold": "A",
+        "id": "940df4b2-5377-4a5a-84c1-dc2ace45059b",
+        "ok": false,
+        "pred": "C"
+      },
+      {
+        "gold": "A",
+        "id": "9bd639c1-6e40-4de9-8198-6e42a8781743",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "34a393a9-dee4-47b0-bdd0-ebda4f64cbd3",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "33e5c40e-3a0b-4b21-a09a-c09aeb006e5b",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "5969085a-2425-4d26-892f-a87a8bc3f539",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "6df3cdb6-2751-4a64-8b74-e8595c0e9ffd",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "",
+        "id": "51c2e727-40d0-4783-a620-a924367a6069",
+        "ok": false,
+        "pred": "D"
+      },
+      {
+        "gold": "A",
+        "id": "a051df55-8b5f-4ba2-abb3-b33bfe754619",
+        "ok": false,
+        "pred": "C"
+      },
+      {
+        "gold": "A",
+        "id": "de04c560-e141-487c-abcb-22b7d14a0403",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "2a288907-b402-4631-96e6-e039ddea1507",
+        "ok": false,
+        "pred": "D"
+      },
+      {
+        "gold": "B",
+        "id": "8a7f4b45-112c-4794-8a92-82b457cbd683",
+        "ok": false,
+        "pred": "C"
+      },
+      {
+        "gold": "B",
+        "id": "4ca8aaeb-4354-4343-9b06-9406e0e85118",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "a684a5f8-bc60-4d08-bbdf-a8fdd340fe61",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "60631cf9-95c2-47c0-b0dc-1443524892a5",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "f3d075bb-c0ec-4b0a-987a-3f44a3d0b106",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "88117990-6ba6-4386-865e-b4cacd4b2692",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "32112383-dc97-478c-b04c-3df08455507b",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "a894c7d1-ea25-406f-a6c0-ec7488969eb9",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "D",
+        "id": "e41b57c6-eba6-4a7d-ae9d-05238c751af6",
+        "ok": true,
+        "pred": "D"
+      },
+      {
+        "gold": "B",
+        "id": "a860f5b8-a0cd-4b5c-b166-0943736080ef",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "00d8980f-9175-4392-8464-e070450e42ff",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "f87694cc-8af0-4e45-af96-862ea23f5fff",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "71254b0b-c546-493d-ab90-b9f8cc9d164f",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "11541420-16d3-44ce-98e9-44a046d318ce",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "c45ec093-be55-4207-8b3e-03054a8ccc5c",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "ed76d844-e5ab-4036-b792-0cad86ea465f",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "69fca540-6531-4597-9d4c-765d8a2a9f07",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "0ac6a24d-1a21-4c95-b60c-817a35ab6a13",
+        "ok": false,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "85bd0067-1e1f-4a00-a3dd-7e949c56ebe8",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "C",
+        "id": "ebca777b-0bd0-45db-bd5e-d941d978a531",
+        "ok": true,
+        "pred": "C"
+      },
+      {
+        "gold": "C",
+        "id": "27da813c-70c2-4126-81d0-03f7c23881fa",
+        "ok": true,
+        "pred": "C"
+      },
+      {
+        "gold": "B",
+        "id": "2ce26b1c-7d8d-4aa1-af16-c5e6ab29e40b",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "C",
+        "id": "3e3d7df5-d964-4bd0-9f77-b9650847e2fd",
+        "ok": true,
+        "pred": "C"
+      },
+      {
+        "gold": "A",
+        "id": "94b59f6f-57f5-4ea3-af4f-f4e58ad1cdef",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "a09c67f4-cea8-4639-9d77-a4f414193533",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "bfde3b64-9ffd-4b6e-b39c-71fc772b4e5d",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "d1265f2e-60df-4260-bdd7-93c7beb12efc",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "9e6eabad-2a35-483a-97d5-58469bb4aace",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "edcddbbd-0985-44b4-a762-820d7d1d37c5",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "639425de-9638-4a42-82f1-fa56fb29128b",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "dc2205c9-362d-4636-8d5e-7e363305650e",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "C",
+        "id": "38bd6938-5b55-487a-80a2-3d947c146965",
+        "ok": true,
+        "pred": "C"
+      },
+      {
+        "gold": "B",
+        "id": "2290153c-a8db-4850-abfa-5e0839fde675",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "21db3c73-8ef3-41ee-b974-cb1545d1dfc8",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "29c63c06-5d66-4ea4-995e-0688ec2b6f95",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "63452203-107c-43a4-a0ac-9fa90a26e079",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "ed005bfe-e198-41b0-9cee-de25b381d63f",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "6d475412-2961-40e2-82d0-b97e4700ccfc",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "D",
+        "id": "d1c03b08-f8bb-471d-a018-1e4fef50dc0b",
+        "ok": true,
+        "pred": "D"
+      },
+      {
+        "gold": "A",
+        "id": "2ae220d9-94f7-4c90-9ce9-b004d35c232b",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "38a24d56-4498-40f1-8a1a-0857180854fa",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "ccb0c36d-8aa0-436a-8c29-e355ee84ef75",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "41bd101c-80a7-45af-99a5-90a6bc83db4f",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "C",
+        "id": "0e5de29b-9d0e-47dc-80e6-9ef68e329099",
+        "ok": true,
+        "pred": "C"
+      },
+      {
+        "gold": "A",
+        "id": "3a26c0ee-6ddb-4900-a7b4-eea97826bf64",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "c60dde0b-fbcf-4b4c-b98b-05688c6af02d",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "4032e4d4-c876-47a5-9b78-ee2049bc871e",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "fca502ab-a566-4f7a-89b7-d45e951502e0",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "C",
+        "id": "0e616afd-3284-4d08-af2f-14a638db1336",
+        "ok": true,
+        "pred": "C"
+      },
+      {
+        "gold": "B",
+        "id": "dac4ab1b-de47-4192-838e-7bcff76c6d19",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "6da9d669-5654-4d82-9b42-15d8e18d3701",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "996638ad-eeef-48ee-81bc-ca03616b344f",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "cc5410ee-4b25-4205-a81b-73f8dc93c05f",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "e23d21db-5f7e-4bfe-b668-cf03722a22c6",
+        "ok": false,
+        "pred": "D"
+      },
+      {
+        "gold": "B",
+        "id": "7923eb03-1ffa-49b0-b452-54a4fd2d78ea",
+        "ok": false,
+        "pred": "A"
+      },
+      {
+        "gold": "C",
+        "id": "9fb580d7-9d6d-41c1-a2aa-fa02accd11b0",
+        "ok": true,
+        "pred": "C"
+      },
+      {
+        "gold": "B",
+        "id": "92453f4a-d1a4-4d72-94d0-bede5ea7acd4",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "9c6104db-42c2-4f77-9a3b-e8473c0a998b",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "3dd06430-92b0-4b73-825a-c70c743050c1",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "5fdb6e82-4a63-4ad1-9df1-60e8b9bccbb0",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "fd2f46bb-f69a-4e5d-bc26-d62c67b00c29",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "4dffab17-7b53-4bd7-b61d-259c0ac1f8e1",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "4bb7c6cc-ae21-4c44-9269-0f31f207254b",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "ec99f5aa-7ff4-4416-8c6b-324b8b03a733",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "8014a5fd-6810-4bf8-94d3-47b45734c22e",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "1029347f-7ce8-473b-97b7-b45020caf68c",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "f7483ada-2916-443d-901d-f498adcf737d",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "c90e1f2d-32bd-4859-8765-bb748454808b",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "bb5ac0b2-b3d2-4024-a045-403fc90cd9cc",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "a26c27f2-33a6-43d6-b3a2-b12443d05ee3",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "131911cc-2e67-43d8-b3ec-0dc333b7038b",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "dd43f00b-919e-4629-8702-339e2097cafd",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "1635d76c-d487-4c43-8c8e-739fef98cd72",
+        "ok": false,
+        "pred": "D"
+      },
+      {
+        "gold": "A",
+        "id": "6c12ff70-c078-4105-ae61-d64b18152fea",
+        "ok": false,
+        "pred": "C"
+      },
+      {
+        "gold": "A",
+        "id": "c55a6ee8-5ce8-4f1a-bff3-992c2dd30d89",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "a762a0e4-cc31-4f47-88e6-2314ad867e1a",
+        "ok": false,
+        "pred": "C"
+      },
+      {
+        "gold": "B",
+        "id": "c5b74dba-8274-44b1-b642-d7f3847611f2",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "0ea86fdb-a3e1-48b6-850b-2526c1eda150",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "e77d25b3-692f-484f-b0ec-43466e098af2",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "a5e47333-0764-4720-ad0b-5ca0a6f14afe",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "d04060e2-c776-4cab-8678-5d4a0f36ecb9",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "648a1490-2851-4e8f-bcb0-80c840a3e53f",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "6854dc46-a644-4948-ab52-870c6926b5df",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "b4237c97-fd91-4955-a182-572f04ef0b73",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "B",
+        "id": "f543bef0-88ad-458f-8ca4-72b082c068e0",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "3fc32e2f-feaa-4429-ad89-1945f6c80da5",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "62d85d4e-63d5-480e-a7eb-85252919e0a7",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "2a973503-706f-480e-8c2b-0951deffe733",
+        "ok": false,
+        "pred": "C"
+      },
+      {
+        "gold": "A",
+        "id": "3125078d-9971-4bda-8e46-2f55a4c4668a",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "B",
+        "id": "0c9d06eb-cdb8-4066-a35a-0d05bde189a5",
+        "ok": true,
+        "pred": "B"
+      },
+      {
+        "gold": "A",
+        "id": "ffe96b08-6e55-4564-8eda-d1fa4e62ce79",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "35282d04-f5b4-4ef4-810f-c1b45dd6b784",
+        "ok": false,
+        "pred": "C"
+      },
+      {
+        "gold": "A",
+        "id": "0b7d0f1b-532d-4248-bbce-126f2f6b0049",
+        "ok": true,
+        "pred": "A"
+      },
+      {
+        "gold": "A",
+        "id": "26f1233f-6f46-4a8b-98ba-c1116634fd97",
+        "ok": true,
+        "pred": "A"
+      }
+    ],
+    "metric": "accuracy (yüksek iyi)",
+    "n": 120,
+    "score": 0.875,
+    "sure_sn": 40.6
+  }
+]

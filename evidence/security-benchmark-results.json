@@ -1,0 +1,30 @@
+{
+  "harness": {
+    "runs": 5,
+    "recall": 1.0,
+    "recall_min": 1.0,
+    "fp": 0,
+    "violations": 0,
+    "avg_seconds": 0.13
+  },
+  "seceval": {
+    "n": 120,
+    "score": 0.875,
+    "seconds": 40.6
+  },
+  "agentharm": {
+    "n": 32,
+    "score": 1.0,
+    "seconds": 95.2
+  },
+  "injecagent": {
+    "n": 120,
+    "score": 1.0,
+    "seconds": 454.2
+  },
+  "jev_triage": {
+    "n": 8,
+    "accuracy": 0.625,
+    "avg_ms": 476
+  }
+}
