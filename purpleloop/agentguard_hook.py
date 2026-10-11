@@ -38,8 +38,9 @@ def _payload_from_event(ev: dict) -> dict:
         import urllib.parse as up
         u = up.urlparse(url)
         p.setdefault("host", u.hostname)
-        if u.port:
-            p.setdefault("port", u.port)
+        # port yoksa şemadan türet — http://x/ yazan istek 80'den kaçamaz
+        port = u.port or (443 if u.scheme == "https" else 80)
+        p.setdefault("port", port)
     p["_tool"] = tool
     return p
 
